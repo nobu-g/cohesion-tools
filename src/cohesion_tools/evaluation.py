@@ -526,16 +526,16 @@ class ScoreResult:
         """Export the evaluation results in a csv format.
 
         Args:
-            destination (Union[str, Path, TextIO]): 書き出す先
-            sep (str): 区切り文字 (default: ',')
+            destination: 書き出す先
+            sep: 区切り文字 (default: ',')
         """
-        text = ""
-        score_result_dict = self.to_dict()
-        text += "case" + sep
-        text += sep.join(score_result_dict["all_case"].keys()) + "\n"
-        for rel, analysis2metric in score_result_dict.items():
-            text += rel + sep
-            text += sep.join(f"{metric.f1:.6}" for metric in analysis2metric.values())
+        result_dict = self.to_dict()
+        text = "task" + sep
+        columns: List[str] = list(result_dict["all_case"].keys())
+        text += sep.join(columns) + "\n"
+        for task, measures in result_dict.items():
+            text += task + sep
+            text += sep.join(f"{measures[column].f1:.6}" if column in measures else "" for column in columns)
             text += "\n"
 
         if isinstance(destination, str) or isinstance(destination, Path):

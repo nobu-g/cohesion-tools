@@ -1,6 +1,6 @@
 from typing import List
 
-from rhoknp import BasePhrase, Document
+from rhoknp import BasePhrase
 from rhoknp.cohesion import ExophoraReferentType
 
 
@@ -8,7 +8,7 @@ class BaseExtractor:
     def __init__(self, exophora_referent_types: List[ExophoraReferentType]) -> None:
         self.exophora_referent_types = exophora_referent_types
 
-    def extract_rels(self, document: Document):
+    def extract_rels(self, base_phrase: BasePhrase):
         raise NotImplementedError
 
     def is_target(self, base_phrase: BasePhrase) -> bool:
