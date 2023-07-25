@@ -17,7 +17,7 @@ from cohesion_tools.extractors import BridgingExtractor, CoreferenceExtractor, P
 logger = logging.getLogger(__name__)
 
 
-class Scorer:
+class CohesionScorer:
     """A class to evaluate system output.
 
     To evaluate system output with this class, you have to prepare gold data and system prediction data as instances of
@@ -77,19 +77,19 @@ class Scorer:
         self.coreference: bool = coreference
 
         self.comp_result: Dict[tuple, str] = {}
-        self.sub_scorers: List[SubScorer] = []
+        self.sub_scorers: List[SubCohesionScorer] = []
 
-    def run(self) -> "ScoreResult":
+    def run(self) -> "CohesionScore":
         """読み込んだ正解文書集合とシステム予測文書集合に対して評価を行う
 
         Returns:
-            ScoreResult: 評価結果のスコア
+            CohesionScore: 評価結果のスコア
         """
         self.comp_result.clear()
         self.sub_scorers.clear()
         results = []
         for doc_id in self.doc_ids:
-            sub_scorer = SubScorer(
+            sub_scorer = SubCohesionScorer(
                 self.doc_id2predicted_document[doc_id],
                 self.doc_id2gold_document[doc_id],
                 exophora_referents=self.exophora_referents,
@@ -104,7 +104,7 @@ class Scorer:
         return reduce(add, results)
 
 
-class SubScorer:
+class SubCohesionScorer:
     """Scorer for single document pair.
 
     Args:
@@ -181,24 +181,24 @@ class SubScorer:
 
         self.comp_result: Dict[tuple, str] = {}
 
-    def run(self) -> "ScoreResult":
+    def run(self) -> "CohesionScore":
         """Perform evaluation for the given gold document and system prediction document.
 
         Returns:
-            ScoreResult: 評価結果のスコア
+            CohesionScore: 評価結果のスコア
         """
         self.comp_result.clear()
         pas_metrics = self._evaluate_pas() if self.pas is True else None
         bridging_metrics = self._evaluate_bridging() if self.bridging is True else None
         coreference_metric = self._evaluate_coreference() if self.coreference is True else None
-        return ScoreResult(pas_metrics, bridging_metrics, coreference_metric)
+        return CohesionScore(pas_metrics, bridging_metrics, coreference_metric)
 
     def _evaluate_pas(self) -> pd.DataFrame:
         """compute predicate-argument structure analysis scores"""
         metrics = pd.DataFrame(
-            [[Metric() for _ in Scorer.ARGUMENT_TYPE2ANALYSIS.values()] for _ in self.pas_cases],
+            [[Metrics() for _ in CohesionScorer.ARGUMENT_TYPE2ANALYSIS.values()] for _ in self.pas_cases],
             index=self.pas_cases,
-            columns=list(Scorer.ARGUMENT_TYPE2ANALYSIS.values()),
+            columns=list(CohesionScorer.ARGUMENT_TYPE2ANALYSIS.values()),
         )
         global_index2predicted_pas_predicate: Dict[int, Predicate] = {
             p.base_phrase.global_index: p for p in self.predicted_pas_predicates
@@ -241,29 +241,32 @@ class SubScorer:
                             relaxed_gold_pas_arguments.index(predicted_pas_argument)
                         ]
                         # use argument_type of gold argument if possible
-                        analysis = Scorer.ARGUMENT_TYPE2ANALYSIS[relaxed_gold_pas_argument.type]
+                        analysis = CohesionScorer.ARGUMENT_TYPE2ANALYSIS[relaxed_gold_pas_argument.type]
                         self.comp_result[key] = analysis
                         metrics.at[pas_case, analysis].tp += 1
                     else:
                         # system出力のargument_typeはgoldのものと違うので不整合が起きるかもしれない
-                        analysis = Scorer.ARGUMENT_TYPE2ANALYSIS[predicted_pas_argument.type]
+                        analysis = CohesionScorer.ARGUMENT_TYPE2ANALYSIS[predicted_pas_argument.type]
                         self.comp_result[key] = "wrong"  # precision が下がる
                     metrics.at[pas_case, analysis].tp_fp += 1
 
                 # compute recall
                 # 正解が複数ある場合、そのうち一つが当てられていればそれを正解に採用
-                if len(gold_pas_arguments) > 0 or self.comp_result.get(key) in Scorer.ARGUMENT_TYPE2ANALYSIS.values():
+                if (
+                    len(gold_pas_arguments) > 0
+                    or self.comp_result.get(key) in CohesionScorer.ARGUMENT_TYPE2ANALYSIS.values()
+                ):
                     recalled_pas_argument: Optional[Argument] = None
                     for relaxed_gold_pas_argument in relaxed_gold_pas_arguments:
                         if relaxed_gold_pas_argument in predicted_pas_arguments:
                             recalled_pas_argument = relaxed_gold_pas_argument  # 予測されている項を優先して正解の項に採用
                             break
                     if recalled_pas_argument is not None:
-                        analysis = Scorer.ARGUMENT_TYPE2ANALYSIS[recalled_pas_argument.type]
+                        analysis = CohesionScorer.ARGUMENT_TYPE2ANALYSIS[recalled_pas_argument.type]
                         assert self.comp_result[key] == analysis
                     else:
                         # いずれも当てられていなければ、relax されていない項から一つを選び正解に採用
-                        analysis = Scorer.ARGUMENT_TYPE2ANALYSIS[gold_pas_arguments[0].type]
+                        analysis = CohesionScorer.ARGUMENT_TYPE2ANALYSIS[gold_pas_arguments[0].type]
                         if len(predicted_pas_arguments) > 0:
                             assert self.comp_result[key] == "wrong"
                         else:
@@ -301,7 +304,7 @@ class SubScorer:
 
     def _evaluate_bridging(self) -> pd.Series:
         """compute bridging reference resolution scores"""
-        metrics: Dict[str, Metric] = OrderedDict((anal, Metric()) for anal in ("dep", "zero_endophora", "exophora"))
+        metrics: Dict[str, Metrics] = OrderedDict((anal, Metrics()) for anal in ("dep", "zero_endophora", "exophora"))
         global_index2predicted_anaphor: Dict[int, Predicate] = {
             p.base_phrase.global_index: p for p in self.predicted_bridging_anaphors
         }
@@ -343,32 +346,32 @@ class SubScorer:
                     relaxed_gold_antecedent = relaxed_gold_antecedents[
                         relaxed_gold_antecedents.index(predicted_antecedent)
                     ]
-                    analysis = Scorer.ARGUMENT_TYPE2ANALYSIS[relaxed_gold_antecedent.type]
+                    analysis = CohesionScorer.ARGUMENT_TYPE2ANALYSIS[relaxed_gold_antecedent.type]
                     if analysis == "overt":
                         analysis = "dep"
                     self.comp_result[key] = analysis
                     metrics[analysis].tp += 1
                 else:
-                    analysis = Scorer.ARGUMENT_TYPE2ANALYSIS[predicted_antecedent.type]
+                    analysis = CohesionScorer.ARGUMENT_TYPE2ANALYSIS[predicted_antecedent.type]
                     if analysis == "overt":
                         analysis = "dep"
                     self.comp_result[key] = "wrong"
                 metrics[analysis].tp_fp += 1
 
             # calculate recall
-            if gold_antecedents or (self.comp_result.get(key, None) in Scorer.ARGUMENT_TYPE2ANALYSIS.values()):
+            if gold_antecedents or (self.comp_result.get(key, None) in CohesionScorer.ARGUMENT_TYPE2ANALYSIS.values()):
                 recalled_antecedent: Optional[Argument] = None
                 for relaxed_gold_antecedent in relaxed_gold_antecedents:
                     if relaxed_gold_antecedent in predicted_antecedents:
                         recalled_antecedent = relaxed_gold_antecedent  # 予測されている先行詞を優先して正解の先行詞に採用
                         break
                 if recalled_antecedent is not None:
-                    analysis = Scorer.ARGUMENT_TYPE2ANALYSIS[recalled_antecedent.type]
+                    analysis = CohesionScorer.ARGUMENT_TYPE2ANALYSIS[recalled_antecedent.type]
                     if analysis == "overt":
                         analysis = "dep"
                     assert self.comp_result[key] == analysis
                 else:
-                    analysis = Scorer.ARGUMENT_TYPE2ANALYSIS[gold_antecedents[0].type]
+                    analysis = CohesionScorer.ARGUMENT_TYPE2ANALYSIS[gold_antecedents[0].type]
                     if analysis == "overt":
                         analysis = "dep"
                     if len(predicted_antecedents) > 0:
@@ -380,7 +383,7 @@ class SubScorer:
 
     def _evaluate_coreference(self) -> pd.Series:
         """compute coreference resolution scores"""
-        metrics: Dict[str, Metric] = OrderedDict((anal, Metric()) for anal in ("endophora", "exophora"))
+        metrics: Dict[str, Metrics] = OrderedDict((anal, Metrics()) for anal in ("endophora", "exophora"))
         global_index2predicted_mention: Dict[int, BasePhrase] = {p.global_index: p for p in self.predicted_mentions}
         global_index2gold_mention: Dict[int, BasePhrase] = {p.global_index: p for p in self.gold_mentions}
         for global_index in range(len(self.predicted_document.base_phrases)):
@@ -461,14 +464,14 @@ class SubScorer:
 
 
 @dataclass(frozen=True)
-class ScoreResult:
+class CohesionScore:
     """A data class for storing the numerical result of an evaluation"""
 
     pas_metrics: Optional[pd.DataFrame]
     bridging_metrics: Optional[pd.Series]
     coreference_metrics: Optional[pd.Series]
 
-    def to_dict(self) -> Dict[str, Dict[str, "Metric"]]:
+    def to_dict(self) -> Dict[str, Dict[str, "Metrics"]]:
         """convert data to dictionary"""
         df_all = pd.DataFrame(index=["all_case"])
         if self.pas is True:
@@ -558,7 +561,7 @@ class ScoreResult:
         """Whether self includes the score of coreference resolution."""
         return self.coreference_metrics is not None
 
-    def __add__(self, other: "ScoreResult") -> "ScoreResult":
+    def __add__(self, other: "CohesionScore") -> "CohesionScore":
         if self.pas is True:
             assert self.pas_metrics is not None and other.pas_metrics is not None
             pas_metrics = self.pas_metrics + other.pas_metrics
@@ -574,19 +577,19 @@ class ScoreResult:
             coreference_metric = self.coreference_metrics + other.coreference_metrics
         else:
             coreference_metric = None
-        return ScoreResult(pas_metrics, bridging_metrics, coreference_metric)
+        return CohesionScore(pas_metrics, bridging_metrics, coreference_metric)
 
 
 @dataclass
-class Metric:
+class Metrics:
     """A data class to calculate and represent F-score"""
 
     tp_fp: int = 0
     tp_fn: int = 0
     tp: int = 0
 
-    def __add__(self, other: "Metric"):
-        return Metric(self.tp_fp + other.tp_fp, self.tp_fn + other.tp_fn, self.tp + other.tp)
+    def __add__(self, other: "Metrics"):
+        return Metrics(self.tp_fp + other.tp_fp, self.tp_fn + other.tp_fn, self.tp + other.tp)
 
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, type(self)) is False:
