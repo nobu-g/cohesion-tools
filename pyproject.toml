@@ -17,6 +17,7 @@ ipython = [
     { version = "^8.13", python = ">=3.9" },
 ]
 ipdb = "^0.13.13"
+pytest = "^7.4"
 
 
 [tool.black]
