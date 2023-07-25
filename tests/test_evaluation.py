@@ -14,7 +14,7 @@ def test_to_dict(data_dir: Path, scorer: Scorer) -> None:
             expected: dict = expected_scores[task][anal]
             assert expected["denom_pred"] == actual.tp_fp
             assert expected["denom_gold"] == actual.tp_fn
-            assert expected["correct"] == actual.tp
+            assert expected["tp"] == actual.tp
 
 
 def test_score_result_add(data_dir: Path, scorer: Scorer) -> None:
@@ -30,7 +30,7 @@ def test_score_result_add(data_dir: Path, scorer: Scorer) -> None:
             actual: Metric = case_result[analysis]
             assert actual.tp_fp == expected["denom_pred"] * 2
             assert actual.tp_fn == expected["denom_gold"] * 2
-            assert actual.tp == expected["correct"] * 2
+            assert actual.tp == expected["tp"] * 2
 
 
 def test_export_txt(data_dir: Path, scorer: Scorer) -> None:

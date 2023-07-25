@@ -3,195 +3,195 @@
     "overt": {
       "denom_pred": 0,
       "denom_gold": 0,
-      "correct": 0
+      "tp": 0
     },
     "dep": {
       "denom_pred": 1,
       "denom_gold": 1,
-      "correct": 1
+      "tp": 1
     },
     "zero_endophora": {
       "denom_pred": 1,
       "denom_gold": 1,
-      "correct": 1
+      "tp": 1
     },
     "exophora": {
       "denom_pred": 0,
       "denom_gold": 0,
-      "correct": 0
+      "tp": 0
     },
     "overt_dep": {
       "denom_pred": 1,
       "denom_gold": 1,
-      "correct": 1
+      "tp": 1
     },
     "endophora": {
       "denom_pred": 2,
       "denom_gold": 2,
-      "correct": 2
+      "tp": 2
     },
     "zero": {
       "denom_pred": 1,
       "denom_gold": 1,
-      "correct": 1
+      "tp": 1
     },
     "dep_zero": {
       "denom_pred": 2,
       "denom_gold": 2,
-      "correct": 2
+      "tp": 2
     },
     "all": {
       "denom_pred": 2,
       "denom_gold": 2,
-      "correct": 2
+      "tp": 2
     }
   },
   "ヲ": {
     "overt": {
       "denom_pred": 0,
       "denom_gold": 1,
-      "correct": 0
+      "tp": 0
     },
     "dep": {
       "denom_pred": 0,
       "denom_gold": 0,
-      "correct": 0
+      "tp": 0
     },
     "zero_endophora": {
       "denom_pred": 1,
       "denom_gold": 1,
-      "correct": 1
+      "tp": 1
     },
     "exophora": {
       "denom_pred": 0,
       "denom_gold": 0,
-      "correct": 0
+      "tp": 0
     },
     "overt_dep": {
       "denom_pred": 0,
       "denom_gold": 1,
-      "correct": 0
+      "tp": 0
     },
     "endophora": {
       "denom_pred": 1,
       "denom_gold": 2,
-      "correct": 1
+      "tp": 1
     },
     "zero": {
       "denom_pred": 1,
       "denom_gold": 1,
-      "correct": 1
+      "tp": 1
     },
     "dep_zero": {
       "denom_pred": 1,
       "denom_gold": 1,
-      "correct": 1
+      "tp": 1
     },
     "all": {
       "denom_pred": 1,
       "denom_gold": 2,
-      "correct": 1
+      "tp": 1
     }
   },
   "all_case": {
     "overt": {
       "denom_pred": 0,
       "denom_gold": 1,
-      "correct": 0
+      "tp": 0
     },
     "dep": {
       "denom_pred": 1,
       "denom_gold": 1,
-      "correct": 1
+      "tp": 1
     },
     "zero_endophora": {
       "denom_pred": 2,
       "denom_gold": 2,
-      "correct": 2
+      "tp": 2
     },
     "exophora": {
       "denom_pred": 0,
       "denom_gold": 0,
-      "correct": 0
+      "tp": 0
     },
     "overt_dep": {
       "denom_pred": 1,
       "denom_gold": 2,
-      "correct": 1
+      "tp": 1
     },
     "endophora": {
       "denom_pred": 3,
       "denom_gold": 4,
-      "correct": 3
+      "tp": 3
     },
     "zero": {
       "denom_pred": 2,
       "denom_gold": 2,
-      "correct": 2
+      "tp": 2
     },
     "dep_zero": {
       "denom_pred": 3,
       "denom_gold": 3,
-      "correct": 3
+      "tp": 3
     },
     "all": {
       "denom_pred": 3,
       "denom_gold": 4,
-      "correct": 3
+      "tp": 3
     }
   },
   "bridging": {
     "dep": {
       "denom_pred": 1,
       "denom_gold": 1,
-      "correct": 1
+      "tp": 1
     },
     "zero_endophora": {
       "denom_pred": 0,
       "denom_gold": 0,
-      "correct": 0
+      "tp": 0
     },
     "exophora": {
       "denom_pred": 0,
       "denom_gold": 0,
-      "correct": 0
+      "tp": 0
     },
     "endophora": {
       "denom_pred": 1,
       "denom_gold": 1,
-      "correct": 1
+      "tp": 1
     },
     "zero": {
       "denom_pred": 0,
       "denom_gold": 0,
-      "correct": 0
+      "tp": 0
     },
     "dep_zero": {
       "denom_pred": 1,
       "denom_gold": 1,
-      "correct": 1
+      "tp": 1
     },
     "all": {
       "denom_pred": 1,
       "denom_gold": 1,
-      "correct": 1
+      "tp": 1
     }
   },
   "coreference": {
     "exophora": {
       "denom_pred": 1,
       "denom_gold": 0,
-      "correct": 0
+      "tp": 0
     },
     "endophora": {
       "denom_pred": 1,
       "denom_gold": 1,
-      "correct": 0
+      "tp": 0
     },
     "all": {
       "denom_pred": 2,
       "denom_gold": 1,
-      "correct": 0
+      "tp": 0
     }
   }
 }
