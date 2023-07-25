@@ -12,8 +12,8 @@ def test_to_dict(data_dir: Path, scorer: CohesionScorer) -> None:
         task_result = score[task]
         for anal, actual in task_result.items():
             expected: dict = expected_scores[task][anal]
-            assert expected["denom_pred"] == actual.tp_fp
-            assert expected["denom_gold"] == actual.tp_fn
+            assert expected["denom_precision"] == actual.tp_fp
+            assert expected["denom_recall"] == actual.tp_fn
             assert expected["tp"] == actual.tp
 
 
@@ -28,8 +28,8 @@ def test_score_result_add(data_dir: Path, scorer: CohesionScorer) -> None:
         for analysis in CohesionScorer.ARGUMENT_TYPE2ANALYSIS.values():
             expected: dict = expected_scores[case][analysis]
             actual: Metrics = case_result[analysis]
-            assert actual.tp_fp == expected["denom_pred"] * 2
-            assert actual.tp_fn == expected["denom_gold"] * 2
+            assert actual.tp_fp == expected["denom_precision"] * 2
+            assert actual.tp_fn == expected["denom_recall"] * 2
             assert actual.tp == expected["tp"] * 2
 
 
