@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from functools import reduce
 from operator import add
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, TextIO, Union
+from typing import Any, Collection, Dict, List, Optional, Sequence, Set, TextIO, Union
 
 import pandas as pd
 from rhoknp import BasePhrase, Document
@@ -56,10 +56,10 @@ class CohesionScorer:
 
     def __init__(
         self,
-        predicted_documents: List[Document],
-        gold_documents: List[Document],
-        exophora_referents: List[ExophoraReferent],
-        pas_cases: List[str],
+        predicted_documents: Sequence[Document],
+        gold_documents: Sequence[Document],
+        exophora_referents: Collection[ExophoraReferent],
+        pas_cases: Collection[str],
         pas_target: str = "pred",
         bridging: bool = False,
         coreference: bool = False,
@@ -70,8 +70,8 @@ class CohesionScorer:
         self.doc_id2predicted_document: Dict[str, Document] = {d.doc_id: d for d in predicted_documents}
         self.doc_id2gold_document: Dict[str, Document] = {d.doc_id: d for d in gold_documents}
 
-        self.exophora_referents: List[ExophoraReferent] = exophora_referents
-        self.pas_cases: List[str] = pas_cases if pas_target != "" else []
+        self.exophora_referents: Collection[ExophoraReferent] = exophora_referents
+        self.pas_cases: Collection[str] = pas_cases
         self.pas_target: str = pas_target
         self.bridging: bool = bridging
         self.coreference: bool = coreference
@@ -138,8 +138,8 @@ class SubCohesionScorer:
         self,
         predicted_document: Document,
         gold_document: Document,
-        exophora_referents: List[ExophoraReferent],
-        pas_cases: List[str],
+        exophora_referents: Collection[ExophoraReferent],
+        pas_cases: Collection[str],
         pas_target: str,
         bridging: bool,
         coreference: bool,
@@ -149,8 +149,8 @@ class SubCohesionScorer:
         self.predicted_document: Document = predicted_document
         self.gold_document: Document = gold_document
 
-        self.exophora_referents: List[ExophoraReferent] = exophora_referents
-        self.pas_cases: List[str] = pas_cases
+        self.exophora_referents: Collection[ExophoraReferent] = exophora_referents
+        self.pas_cases: Collection[str] = pas_cases
         verbal = pas_target in ("pred", "all")
         nominal = pas_target in ("noun", "all")
         self.pas: bool = pas_target != ""
