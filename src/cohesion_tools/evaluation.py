@@ -27,8 +27,9 @@ class CohesionScorer:
         predicted_documents: システム予測文書集合
         gold_documents: 正解文書集合
         exophora_referents: 評価の対象とする外界照応の照応先 (rhoknp.cohesion.ExophoraReferentType を参照)
-        pas_cases: 評価の対象とする格 (rhoknp.cohesion.rel.CASE_TYPES を参照)
-        pas_target: 述語項構造解析において述語として扱う対象 ('pred': 用言, 'noun': 体言, 'all': 両方, '': 述語なし (default: pred))
+        pas_cases: 述語項構造の評価の対象とする格 (rhoknp.cohesion.rel.CASE_TYPES を参照)
+        pas_verbal: 述語項構造解析において用言を述語として扱うかどうか (default: True)
+        pas_nominal: 述語項構造解析において体言を述語として扱うかどうか (default: True)
         bridging: 橋渡し照応の評価を行うかどうか (default: False)
         coreference: 共参照の評価を行うかどうか (default: False)
 
@@ -37,8 +38,9 @@ class CohesionScorer:
         doc_id2predicted_document: 文書IDからシステム予測文書を引くための辞書
         doc_id2gold_document: 文書IDから正解文書を引くための辞書
         exophora_referents: 評価の対象とする外界照応の照応先
-        pas_cases: 評価の対象となる格
-        pas_target: 述語項構造解析において述語として扱う対象
+        pas_cases: 述語項構造の評価の対象とする格 (rhoknp.cohesion.rel.CASE_TYPES を参照)
+        pas_verbal: 述語項構造解析において用言を述語として扱うかどうか (default: True)
+        pas_nominal: 述語項構造解析において体言を述語として扱うかどうか (default: True)
         bridging: 橋渡し照応の評価を行うかどうか
         coreference: 共参照の評価を行うかどうか
         comp_result: 正解と予測を比較した結果を格納するための辞書
@@ -60,7 +62,8 @@ class CohesionScorer:
         gold_documents: Sequence[Document],
         exophora_referents: Collection[ExophoraReferent],
         pas_cases: Collection[str],
-        pas_target: str = "pred",
+        pas_verbal: bool = True,
+        pas_nominal: bool = True,
         bridging: bool = False,
         coreference: bool = False,
     ) -> None:
@@ -72,7 +75,8 @@ class CohesionScorer:
 
         self.exophora_referents: Collection[ExophoraReferent] = exophora_referents
         self.pas_cases: Collection[str] = pas_cases
-        self.pas_target: str = pas_target
+        self.pas_verbal: bool = pas_verbal
+        self.pas_nominal: bool = pas_nominal
         self.bridging: bool = bridging
         self.coreference: bool = coreference
 
@@ -94,7 +98,8 @@ class CohesionScorer:
                 self.doc_id2gold_document[doc_id],
                 exophora_referents=self.exophora_referents,
                 pas_cases=self.pas_cases,
-                pas_target=self.pas_target,
+                pas_verbal=self.pas_verbal,
+                pas_nominal=self.pas_nominal,
                 bridging=self.bridging,
                 coreference=self.coreference,
             )
@@ -111,8 +116,9 @@ class SubCohesionScorer:
         predicted_document: システム予測文書
         gold_document: 正解文書
         exophora_referents: 評価の対象とする外界照応の照応先
-        pas_cases: 評価の対象とする格
-        pas_target: 述語項構造解析において述語として扱う対象
+        pas_cases: 述語項構造の評価の対象とする格
+        pas_verbal: 述語項構造解析において用言を述語として扱うかどうか (default: True)
+        pas_nominal: 述語項構造解析において体言を述語として扱うかどうか (default: True)
         bridging: 橋渡し照応の評価を行うかどうか (default: False)
         coreference: 共参照の評価を行うかどうか (default: False)
 
@@ -140,7 +146,8 @@ class SubCohesionScorer:
         gold_document: Document,
         exophora_referents: Collection[ExophoraReferent],
         pas_cases: Collection[str],
-        pas_target: str,
+        pas_verbal: bool,
+        pas_nominal: bool,
         bridging: bool,
         coreference: bool,
     ):
@@ -151,9 +158,7 @@ class SubCohesionScorer:
 
         self.exophora_referents: Collection[ExophoraReferent] = exophora_referents
         self.pas_cases: Collection[str] = pas_cases
-        verbal = pas_target in ("pred", "all")
-        nominal = pas_target in ("noun", "all")
-        self.pas: bool = pas_target != ""
+        self.pas: bool = len(pas_cases) > 0 and (pas_verbal or pas_nominal)
         self.bridging: bool = bridging
         self.coreference: bool = coreference
 
@@ -161,7 +166,7 @@ class SubCohesionScorer:
         self.predicted_bridging_anaphors: List[Predicate] = []
         self.predicted_mentions: List[BasePhrase] = []
         for base_phrase in predicted_document.base_phrases:
-            if PasExtractor.is_pas_target(base_phrase, verbal=verbal, nominal=nominal):
+            if PasExtractor.is_pas_target(base_phrase, verbal=pas_verbal, nominal=pas_nominal):
                 self.predicted_pas_predicates.append(base_phrase.pas.predicate)
             if self.bridging is True and BridgingExtractor.is_bridging_target(base_phrase):
                 self.predicted_bridging_anaphors.append(base_phrase.pas.predicate)
@@ -172,7 +177,7 @@ class SubCohesionScorer:
         self.gold_bridging_anaphors: List[Predicate] = []
         self.gold_mentions: List[BasePhrase] = []
         for base_phrase in gold_document.base_phrases:
-            if PasExtractor.is_pas_target(base_phrase, verbal=verbal, nominal=nominal):
+            if PasExtractor.is_pas_target(base_phrase, verbal=pas_verbal, nominal=pas_nominal):
                 self.gold_pas_predicates.append(base_phrase.pas.predicate)
             if self.bridging is True and BridgingExtractor.is_bridging_target(base_phrase):
                 self.gold_bridging_anaphors.append(base_phrase.pas.predicate)
