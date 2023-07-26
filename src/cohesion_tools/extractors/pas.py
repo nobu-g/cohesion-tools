@@ -47,7 +47,9 @@ class PasExtractor(BaseExtractor):
         return False
 
     @staticmethod
-    def is_candidate(bp: BasePhrase, anaphor: BasePhrase) -> bool:
-        return bp.global_index < anaphor.global_index or (
-            bp.global_index > anaphor.global_index and bp.sentence.sid == anaphor.sentence.sid
+    def is_candidate(bp: BasePhrase, predicate: BasePhrase) -> bool:
+        is_anaphora = bp.global_index < predicate.global_index
+        is_intra_sentential_cataphora = (
+            bp.global_index > predicate.global_index and bp.sentence.sid == predicate.sentence.sid
         )
+        return is_anaphora or is_intra_sentential_cataphora

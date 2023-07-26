@@ -37,6 +37,8 @@ class BridgingExtractor(BaseExtractor):
 
     @staticmethod
     def is_candidate(bp: BasePhrase, anaphor: BasePhrase) -> bool:
-        return bp.global_index < anaphor.global_index or (
+        is_anaphora = bp.global_index < anaphor.global_index
+        is_intra_sentential_cataphora = (
             bp.global_index > anaphor.global_index and bp.sentence.sid == anaphor.sentence.sid
         )
+        return is_anaphora or is_intra_sentential_cataphora
