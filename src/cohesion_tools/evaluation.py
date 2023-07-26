@@ -10,7 +10,15 @@ from typing import Any, Collection, Dict, List, Optional, Sequence, Set, TextIO,
 
 import pandas as pd
 from rhoknp import BasePhrase, Document
-from rhoknp.cohesion import Argument, ArgumentType, EndophoraArgument, ExophoraArgument, ExophoraReferent, Predicate
+from rhoknp.cohesion import (
+    Argument,
+    ArgumentType,
+    EndophoraArgument,
+    ExophoraArgument,
+    ExophoraReferent,
+    ExophoraReferentType,
+    Predicate,
+)
 
 from cohesion_tools.extractors import BridgingExtractor, CoreferenceExtractor, PasExtractor
 
@@ -26,7 +34,7 @@ class CohesionScorer:
     Args:
         predicted_documents: システム予測文書集合
         gold_documents: 正解文書集合
-        exophora_referents: 評価の対象とする外界照応の照応先 (rhoknp.cohesion.ExophoraReferentType を参照)
+        exophora_referent_types: 評価の対象とする外界照応の照応先 (rhoknp.cohesion.ExophoraReferentTypeType を参照)
         pas_cases: 述語項構造の評価の対象とする格 (rhoknp.cohesion.rel.CASE_TYPES を参照)
         pas_verbal: 述語項構造解析において用言を述語として扱うかどうか (default: True)
         pas_nominal: 述語項構造解析において体言を述語として扱うかどうか (default: True)
@@ -37,7 +45,7 @@ class CohesionScorer:
         doc_ids: 評価の対象となる文書の文書ID集合
         doc_id2predicted_document: 文書IDからシステム予測文書を引くための辞書
         doc_id2gold_document: 文書IDから正解文書を引くための辞書
-        exophora_referents: 評価の対象とする外界照応の照応先
+        exophora_referent_types: 評価の対象とする外界照応の照応先
         pas_cases: 述語項構造の評価の対象とする格 (rhoknp.cohesion.rel.CASE_TYPES を参照)
         pas_verbal: 述語項構造解析において用言を述語として扱うかどうか (default: True)
         pas_nominal: 述語項構造解析において体言を述語として扱うかどうか (default: True)
@@ -60,7 +68,7 @@ class CohesionScorer:
         self,
         predicted_documents: Sequence[Document],
         gold_documents: Sequence[Document],
-        exophora_referents: Collection[ExophoraReferent],
+        exophora_referent_types: Collection[ExophoraReferentType],
         pas_cases: Collection[str],
         pas_verbal: bool = True,
         pas_nominal: bool = True,
@@ -73,7 +81,7 @@ class CohesionScorer:
         self.doc_id2predicted_document: Dict[str, Document] = {d.doc_id: d for d in predicted_documents}
         self.doc_id2gold_document: Dict[str, Document] = {d.doc_id: d for d in gold_documents}
 
-        self.exophora_referents: Collection[ExophoraReferent] = exophora_referents
+        self.exophora_referent_types: Collection[ExophoraReferentType] = exophora_referent_types
         self.pas_cases: Collection[str] = pas_cases
         self.pas_verbal: bool = pas_verbal
         self.pas_nominal: bool = pas_nominal
@@ -96,7 +104,7 @@ class CohesionScorer:
             sub_scorer = SubCohesionScorer(
                 self.doc_id2predicted_document[doc_id],
                 self.doc_id2gold_document[doc_id],
-                exophora_referents=self.exophora_referents,
+                exophora_referent_types=self.exophora_referent_types,
                 pas_cases=self.pas_cases,
                 pas_verbal=self.pas_verbal,
                 pas_nominal=self.pas_nominal,
@@ -115,7 +123,7 @@ class SubCohesionScorer:
     Args:
         predicted_document: システム予測文書
         gold_document: 正解文書
-        exophora_referents: 評価の対象とする外界照応の照応先
+        exophora_referent_types: 評価の対象とする外界照応の照応先
         pas_cases: 述語項構造の評価の対象とする格
         pas_verbal: 述語項構造解析において用言を述語として扱うかどうか (default: True)
         pas_nominal: 述語項構造解析において体言を述語として扱うかどうか (default: True)
@@ -126,7 +134,7 @@ class SubCohesionScorer:
         doc_id: 対象の文書ID
         predicted_document: システム予測文書
         gold_document: 正解文書
-        exophora_referents: 評価の対象とする外界照応の照応先
+        exophora_referent_types: 評価の対象とする外界照応の照応先
         pas_cases: 評価の対象となる格
         pas: 述語項構造の評価を行うかどうか
         bridging: 橋渡し照応の評価を行うかどうか
@@ -144,7 +152,7 @@ class SubCohesionScorer:
         self,
         predicted_document: Document,
         gold_document: Document,
-        exophora_referents: Collection[ExophoraReferent],
+        exophora_referent_types: Collection[ExophoraReferentType],
         pas_cases: Collection[str],
         pas_verbal: bool,
         pas_nominal: bool,
@@ -156,7 +164,7 @@ class SubCohesionScorer:
         self.predicted_document: Document = predicted_document
         self.gold_document: Document = gold_document
 
-        self.exophora_referents: Collection[ExophoraReferent] = exophora_referents
+        self.exophora_referent_types: Collection[ExophoraReferentType] = exophora_referent_types
         self.pas_cases: Collection[str] = pas_cases
         self.pas: bool = len(pas_cases) > 0 and (pas_verbal or pas_nominal)
         self.bridging: bool = bridging
@@ -291,7 +299,7 @@ class SubCohesionScorer:
                 argument.case = "ノ"
             if isinstance(argument, ExophoraArgument):
                 argument.exophora_referent.index = None  # 「不特定:人１」なども「不特定:人」として扱う
-                if argument.exophora_referent not in self.exophora_referents:
+                if argument.exophora_referent.type not in self.exophora_referent_types:
                     continue
             else:
                 assert isinstance(argument, EndophoraArgument)
@@ -463,7 +471,7 @@ class SubCohesionScorer:
         for exophora_referent in exophora_referents:
             exophora_referent = copy.copy(exophora_referent)
             exophora_referent.index = None
-            if exophora_referent in self.exophora_referents:
+            if exophora_referent.type in self.exophora_referent_types:
                 filtered.add(exophora_referent.text)
         return filtered
 

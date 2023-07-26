@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 from rhoknp import Document
-from rhoknp.cohesion import ExophoraReferent
+from rhoknp.cohesion import ExophoraReferentType
 
 from cohesion_tools.evaluation import CohesionScorer
 
@@ -20,7 +20,7 @@ def scorer(data_dir: Path) -> CohesionScorer:
     return CohesionScorer(
         predicted_documents,
         gold_documents,
-        exophora_referents=[ExophoraReferent(e) for e in ("著者", "読者", "不特定:人", "不特定:物")],
+        exophora_referent_types=[ExophoraReferentType(t) for t in ("著者", "読者", "不特定:人", "不特定:物")],
         pas_cases=["ガ", "ヲ"],
         pas_verbal=True,
         pas_nominal=True,

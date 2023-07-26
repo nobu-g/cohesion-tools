@@ -25,6 +25,7 @@ line-length = 120
 target-version = ["py38", "py39", "py310", "py311"]
 
 [tool.isort]
+profile = "black"
 line_length = 120
 
 [tool.mypy]
