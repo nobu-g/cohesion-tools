@@ -3,7 +3,7 @@ from typing import List, Union
 from rhoknp import BasePhrase
 from rhoknp.cohesion import ExophoraReferent, ExophoraReferentType
 
-from cohesion_tools.extractors.base import BaseExtractor
+from cohesion_tools.extractors.base import BaseExtractor, T
 
 
 class CoreferenceExtractor(BaseExtractor):
@@ -12,7 +12,7 @@ class CoreferenceExtractor(BaseExtractor):
 
     def extract_rels(self, mention: BasePhrase) -> List[Union[BasePhrase, ExophoraReferent]]:
         referents: List[Union[BasePhrase, ExophoraReferent]] = []
-        candidates: List[BasePhrase] = self.get_candidates(mention)
+        candidates: List[BasePhrase] = self.get_candidates(mention, mention.document.base_phrases)
         for coreferent in mention.get_coreferents(include_nonidentical=False, include_self=False):
             if coreferent in candidates:
                 referents.append(coreferent)
@@ -29,5 +29,5 @@ class CoreferenceExtractor(BaseExtractor):
         return mention.features.get("体言") is True
 
     @staticmethod
-    def is_candidate(target_mention: BasePhrase, source_mention: BasePhrase) -> bool:
+    def is_candidate(target_mention: T, source_mention: T) -> bool:
         return target_mention.global_index < source_mention.global_index

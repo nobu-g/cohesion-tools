@@ -4,7 +4,7 @@ from typing import Dict, List
 from rhoknp import BasePhrase
 from rhoknp.cohesion import Argument, EndophoraArgument, ExophoraArgument, ExophoraReferentType
 
-from cohesion_tools.extractors.base import BaseExtractor
+from cohesion_tools.extractors.base import BaseExtractor, T
 
 
 class BridgingExtractor(BaseExtractor):
@@ -15,7 +15,7 @@ class BridgingExtractor(BaseExtractor):
 
     def extract_rels(self, anaphor: BasePhrase) -> Dict[str, List[Argument]]:
         all_referents: Dict[str, List[Argument]] = defaultdict(list)
-        candidates: List[BasePhrase] = self.get_candidates(anaphor)
+        candidates: List[BasePhrase] = self.get_candidates(anaphor, anaphor.document.base_phrases)
         for rel_type in self.rel_types:
             for referent in anaphor.pas.get_arguments(rel_type, relax=False):
                 if isinstance(referent, EndophoraArgument):
@@ -36,9 +36,9 @@ class BridgingExtractor(BaseExtractor):
         return anaphor.features.get("体言") is True and "非用言格解析" not in anaphor.features
 
     @staticmethod
-    def is_candidate(bp: BasePhrase, anaphor: BasePhrase) -> bool:
-        is_anaphora = bp.global_index < anaphor.global_index
+    def is_candidate(unit: T, anaphor: T) -> bool:
+        is_anaphora = unit.global_index < anaphor.global_index
         is_intra_sentential_cataphora = (
-            bp.global_index > anaphor.global_index and bp.sentence.sid == anaphor.sentence.sid
+            unit.global_index > anaphor.global_index and unit.sentence.sid == anaphor.sentence.sid
         )
         return is_anaphora or is_intra_sentential_cataphora

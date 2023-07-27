@@ -4,7 +4,7 @@ from typing import Dict, List
 from rhoknp import BasePhrase
 from rhoknp.cohesion import Argument, EndophoraArgument, ExophoraArgument, ExophoraReferentType
 
-from cohesion_tools.extractors.base import BaseExtractor
+from cohesion_tools.extractors.base import BaseExtractor, T
 
 
 class PasExtractor(BaseExtractor):
@@ -22,7 +22,7 @@ class PasExtractor(BaseExtractor):
 
     def extract_rels(self, predicate: BasePhrase) -> Dict[str, List[Argument]]:
         all_arguments: Dict[str, List[Argument]] = defaultdict(list)
-        candidates: List[BasePhrase] = self.get_candidates(predicate)
+        candidates: List[BasePhrase] = self.get_candidates(predicate, predicate.document.base_phrases)
         for case in self.cases:
             for argument in predicate.pas.get_arguments(case, relax=False):
                 if isinstance(argument, EndophoraArgument):
@@ -47,9 +47,9 @@ class PasExtractor(BaseExtractor):
         return False
 
     @staticmethod
-    def is_candidate(bp: BasePhrase, predicate: BasePhrase) -> bool:
-        is_anaphora = bp.global_index < predicate.global_index
+    def is_candidate(unit: T, predicate: T) -> bool:
+        is_anaphora = unit.global_index < predicate.global_index
         is_intra_sentential_cataphora = (
-            bp.global_index > predicate.global_index and bp.sentence.sid == predicate.sentence.sid
+            unit.global_index > predicate.global_index and unit.sentence.sid == predicate.sentence.sid
         )
         return is_anaphora or is_intra_sentential_cataphora
