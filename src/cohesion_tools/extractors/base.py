@@ -1,10 +1,11 @@
+from abc import ABC
 from typing import List
 
 from rhoknp import BasePhrase
 from rhoknp.cohesion import ExophoraReferentType
 
 
-class BaseExtractor:
+class BaseExtractor(ABC):
     def __init__(self, exophora_referent_types: List[ExophoraReferentType]) -> None:
         self.exophora_referent_types = exophora_referent_types
 
