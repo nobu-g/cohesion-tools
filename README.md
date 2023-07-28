@@ -10,6 +10,65 @@
 - Python: 3.8+
 - Dependencies: See [pyproject.toml](./pyproject.toml).
 
+## Installation
+
+```bash
+pip install git+https://github.com/nobu-g/cohesion-tools.git
+````
+
+## Usage
+
+### Evaluating Predicted Documents
+
+```python
+from pathlib import Path
+from typing import List
+
+from rhoknp import Document
+from rhoknp.cohesion import ExophoraReferentType
+from cohesion_tools.evaluation import CohesionScorer, CohesionScore
+
+documents: List[Document] = [Document.from_knp(path.read_text()) for path in Path("your/dataset").glob("*.knp")]
+predicted_documents = your_model(documents)
+
+scorer = CohesionScorer(
+    predicted_documents=predicted_documents,
+    gold_documents=documents,
+    exophora_referent_types=[ExophoraReferentType(t) for t in ("著者", "読者", "不特定:人", "不特定:物")],
+    pas_cases=["ガ", "ヲ", "ニ"],
+)
+
+score: CohesionScore = scorer.run()
+score.to_dict()  # Convert the evaluation result to a dictionary
+score.export_csv("score.csv")  # Export the evaluation result to `score.csv`
+score.export_txt("score.txt")  # Export the evaluation result to `score.txt`
+```
+
+### Extracting Labels From Base Phrases
+
+```python
+from pathlib import Path
+from typing import Dict, List
+
+from rhoknp import Document
+from rhoknp.cohesion import ExophoraReferentType, Argument
+from cohesion_tools.extractors import PasExtractor
+
+pas_extractor = PasExtractor(
+    cases=["ガ", "ヲ", "ニ"],
+    exophora_referent_types=[ExophoraReferentType(t) for t in ("著者", "読者", "不特定:人", "不特定:物")],
+)
+
+examples = []
+documents: List[Document] = [Document.from_knp(path.read_text()) for path in Path("your/dataset").glob("*.knp")]
+for document in documents:
+    for base_phrase in document.base_phrases:
+        if pas_extractor.is_target(base_phrase) is True:
+            rels: Dict[str, List[Argument]] = pas_extractor.extract_rels(base_phrase)
+            examples.append(pas_extractor.extract_rels(base_phrase))
+
+your_trainer.train(your_model, examples)
+```
 
 ## Reference
 
