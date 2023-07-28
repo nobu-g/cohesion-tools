@@ -65,7 +65,7 @@ for document in documents:
     for base_phrase in document.base_phrases:
         if pas_extractor.is_target(base_phrase) is True:
             rels: Dict[str, List[Argument]] = pas_extractor.extract_rels(base_phrase)
-            examples.append(pas_extractor.extract_rels(base_phrase))
+            examples.append(rels)
 
 your_trainer.train(your_model, examples)
 ```
@@ -110,3 +110,7 @@ your_trainer.train(your_model, examples)
   abstract  = {We present KWJA, a high-performance unified Japanese text analyzer based on foundation models.KWJA supports a wide range of tasks, including typo correction, word segmentation, word normalization, morphological analysis, named entity recognition, linguistic feature tagging, dependency parsing, PAS analysis, bridging reference resolution, coreference resolution, and discourse relation analysis, making it the most versatile among existing Japanese text analyzers.KWJA solves these tasks in a multi-task manner but still achieves competitive or better performance compared to existing analyzers specialized for each task.KWJA is publicly available under the MIT license at https://github.com/ku-nlp/kwja.}
 }
 ```
+
+## License
+
+This software is released under the MIT License, see [LICENSE](LICENSE).
