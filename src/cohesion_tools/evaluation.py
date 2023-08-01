@@ -77,12 +77,12 @@ class CohesionScorer:
     ) -> None:
         # long document may have been ignored
         assert {d.doc_id for d in predicted_documents} <= {d.doc_id for d in gold_documents}
-        self.doc_ids: List[str] = [d.doc_id for d in gold_documents]
+        self.doc_ids: List[str] = [d.doc_id for d in predicted_documents]
         self.doc_id2predicted_document: Dict[str, Document] = {d.doc_id: d for d in predicted_documents}
         self.doc_id2gold_document: Dict[str, Document] = {d.doc_id: d for d in gold_documents}
 
         self.exophora_referent_types: Collection[ExophoraReferentType] = exophora_referent_types
-        self.pas_cases: Collection[str] = pas_cases
+        self.pas_cases: List[str] = list(pas_cases)
         self.pas_verbal: bool = pas_verbal
         self.pas_nominal: bool = pas_nominal
         self.bridging: bool = bridging
@@ -164,8 +164,8 @@ class SubCohesionScorer:
         self.predicted_document: Document = predicted_document
         self.gold_document: Document = gold_document
 
-        self.exophora_referent_types: Collection[ExophoraReferentType] = exophora_referent_types
-        self.pas_cases: Collection[str] = pas_cases
+        self.exophora_referent_types: List[ExophoraReferentType] = list(exophora_referent_types)
+        self.pas_cases: List[str] = list(pas_cases)
         self.pas: bool = len(pas_cases) > 0 and (pas_verbal or pas_nominal)
         self.bridging: bool = bridging
         self.coreference: bool = coreference
