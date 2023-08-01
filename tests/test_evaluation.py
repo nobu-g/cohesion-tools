@@ -40,6 +40,14 @@ def test_score_addition(
             assert actual.tp == expected["tp"] * 2
 
 
+def test_identical_document(data_dir: Path, gold_documents: List[Document], scorer: CohesionScorer) -> None:
+    score = scorer.run(gold_documents, gold_documents)
+    score_dict = score.to_dict()
+    for value1 in score_dict.values():
+        for value2 in value1.values():
+            assert value2.tp_fp == value2.tp_fn == value2.tp
+
+
 def test_export_txt(
     data_dir: Path, predicted_documents: List[Document], gold_documents: List[Document], scorer: CohesionScorer
 ) -> None:
