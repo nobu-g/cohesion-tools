@@ -1,13 +1,18 @@
 import io
 import json
 from pathlib import Path
+from typing import List
+
+from rhoknp import Document
 
 from cohesion_tools.evaluation import CohesionScorer, Metrics
 
 
-def test_to_dict(data_dir: Path, scorer: CohesionScorer) -> None:
+def test_to_dict(
+    data_dir: Path, predicted_documents: List[Document], gold_documents: List[Document], scorer: CohesionScorer
+) -> None:
     expected_scores = json.loads(data_dir.joinpath("expected/score/0.json").read_text())
-    score = scorer.run().to_dict()
+    score = scorer.run(predicted_documents, gold_documents).to_dict()
     for task in list(scorer.pas_cases) + ["bridging", "coreference"]:
         task_result = score[task]
         for anal, actual in task_result.items():
@@ -17,10 +22,12 @@ def test_to_dict(data_dir: Path, scorer: CohesionScorer) -> None:
             assert expected["tp"] == actual.tp
 
 
-def test_score_result_add(data_dir: Path, scorer: CohesionScorer) -> None:
+def test_score_addition(
+    data_dir: Path, predicted_documents: List[Document], gold_documents: List[Document], scorer: CohesionScorer
+) -> None:
     expected_scores = json.loads(data_dir.joinpath("expected/score/0.json").read_text())
-    score1 = scorer.run()
-    score2 = scorer.run()
+    score1 = scorer.run(predicted_documents, gold_documents)
+    score2 = scorer.run(predicted_documents, gold_documents)
     score = score1 + score2
     score_dict = score.to_dict()
     for case in scorer.pas_cases:
@@ -33,8 +40,10 @@ def test_score_result_add(data_dir: Path, scorer: CohesionScorer) -> None:
             assert actual.tp == expected["tp"] * 2
 
 
-def test_export_txt(data_dir: Path, scorer: CohesionScorer) -> None:
-    score = scorer.run()
+def test_export_txt(
+    data_dir: Path, predicted_documents: List[Document], gold_documents: List[Document], scorer: CohesionScorer
+) -> None:
+    score = scorer.run(predicted_documents, gold_documents)
     with io.StringIO() as string:
         score.export_txt(string)
         string_actual = string.getvalue()
@@ -42,8 +51,10 @@ def test_export_txt(data_dir: Path, scorer: CohesionScorer) -> None:
     assert string_actual == string_expected
 
 
-def test_export_csv(data_dir: Path, scorer: CohesionScorer) -> None:
-    score = scorer.run()
+def test_export_csv(
+    data_dir: Path, predicted_documents: List[Document], gold_documents: List[Document], scorer: CohesionScorer
+) -> None:
+    score = scorer.run(predicted_documents, gold_documents)
     with io.StringIO() as string:
         score.export_csv(string)
         string_actual = string.getvalue()

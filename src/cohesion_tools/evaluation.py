@@ -32,27 +32,12 @@ class CohesionScorer:
     :class:`rhoknp.Document`
 
     Args:
-        predicted_documents: システム予測文書集合
-        gold_documents: 正解文書集合
         exophora_referent_types: 評価の対象とする外界照応の照応先 (rhoknp.cohesion.ExophoraReferentTypeType を参照)
         pas_cases: 述語項構造の評価の対象とする格 (rhoknp.cohesion.rel.CASE_TYPES を参照)
         pas_verbal: 述語項構造解析において用言を述語として扱うかどうか (default: True)
         pas_nominal: 述語項構造解析において体言を述語として扱うかどうか (default: True)
         bridging: 橋渡し照応の評価を行うかどうか (default: False)
         coreference: 共参照の評価を行うかどうか (default: False)
-
-    Attributes:
-        doc_ids: 評価の対象となる文書の文書ID集合
-        doc_id2predicted_document: 文書IDからシステム予測文書を引くための辞書
-        doc_id2gold_document: 文書IDから正解文書を引くための辞書
-        exophora_referent_types: 評価の対象とする外界照応の照応先
-        pas_cases: 述語項構造の評価の対象とする格 (rhoknp.cohesion.rel.CASE_TYPES を参照)
-        pas_verbal: 述語項構造解析において用言を述語として扱うかどうか (default: True)
-        pas_nominal: 述語項構造解析において体言を述語として扱うかどうか (default: True)
-        bridging: 橋渡し照応の評価を行うかどうか
-        coreference: 共参照の評価を行うかどうか
-        comp_result: 正解と予測を比較した結果を格納するための辞書
-        sub_scorers: 文書ごとの評価を行うオブジェクトのリスト
     """
 
     ARGUMENT_TYPE2ANALYSIS = OrderedDict(
@@ -66,8 +51,6 @@ class CohesionScorer:
 
     def __init__(
         self,
-        predicted_documents: Sequence[Document],
-        gold_documents: Sequence[Document],
         exophora_referent_types: Collection[ExophoraReferentType],
         pas_cases: Collection[str],
         pas_verbal: bool = True,
@@ -75,35 +58,36 @@ class CohesionScorer:
         bridging: bool = False,
         coreference: bool = False,
     ) -> None:
-        # long document may have been ignored
-        assert {d.doc_id for d in predicted_documents} <= {d.doc_id for d in gold_documents}
-        self.doc_ids: List[str] = [d.doc_id for d in predicted_documents]
-        self.doc_id2predicted_document: Dict[str, Document] = {d.doc_id: d for d in predicted_documents}
-        self.doc_id2gold_document: Dict[str, Document] = {d.doc_id: d for d in gold_documents}
-
-        self.exophora_referent_types: Collection[ExophoraReferentType] = exophora_referent_types
+        self.exophora_referent_types: List[ExophoraReferentType] = list(exophora_referent_types)
         self.pas_cases: List[str] = list(pas_cases)
         self.pas_verbal: bool = pas_verbal
         self.pas_nominal: bool = pas_nominal
         self.bridging: bool = bridging
         self.coreference: bool = coreference
 
-        self.comp_result: Dict[tuple, str] = {}
-        self.sub_scorers: List[SubCohesionScorer] = []
-
-    def run(self) -> "CohesionScore":
+    def run(self, predicted_documents: Sequence[Document], gold_documents: Sequence[Document]) -> "CohesionScore":
         """読み込んだ正解文書集合とシステム予測文書集合に対して評価を行う
+
+        Args:
+            predicted_documents: システム予測文書集合
+            gold_documents: 正解文書集合
 
         Returns:
             CohesionScore: 評価結果のスコア
         """
-        self.comp_result.clear()
-        self.sub_scorers.clear()
+        # long document may have been ignored
+        assert {d.doc_id for d in predicted_documents} <= {d.doc_id for d in gold_documents}
+        doc_ids: List[str] = [d.doc_id for d in predicted_documents]
+        doc_id2predicted_document: Dict[str, Document] = {d.doc_id: d for d in predicted_documents}
+        doc_id2gold_document: Dict[str, Document] = {d.doc_id: d for d in gold_documents}
+
+        comp_result: Dict[tuple, str] = {}
+        sub_scorers: List[SubCohesionScorer] = []
         results = []
-        for doc_id in self.doc_ids:
+        for doc_id in doc_ids:
             sub_scorer = SubCohesionScorer(
-                self.doc_id2predicted_document[doc_id],
-                self.doc_id2gold_document[doc_id],
+                doc_id2predicted_document[doc_id],
+                doc_id2gold_document[doc_id],
                 exophora_referent_types=self.exophora_referent_types,
                 pas_cases=self.pas_cases,
                 pas_verbal=self.pas_verbal,
@@ -112,8 +96,8 @@ class CohesionScorer:
                 coreference=self.coreference,
             )
             results.append(sub_scorer.run())
-            self.sub_scorers.append(sub_scorer)
-            self.comp_result.update({(doc_id, *k): v for k, v in sub_scorer.comp_result.items()})
+            sub_scorers.append(sub_scorer)
+            comp_result.update({(doc_id, *k): v for k, v in sub_scorer.comp_result.items()})
         return reduce(add, results)
 
 
