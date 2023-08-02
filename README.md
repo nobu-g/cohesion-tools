@@ -32,13 +32,11 @@ documents: List[Document] = [Document.from_knp(path.read_text()) for path in Pat
 predicted_documents = your_model(documents)
 
 scorer = CohesionScorer(
-    predicted_documents=predicted_documents,
-    gold_documents=documents,
     exophora_referent_types=[ExophoraReferentType(t) for t in ("著者", "読者", "不特定:人", "不特定:物")],
     pas_cases=["ガ", "ヲ", "ニ"],
 )
 
-score: CohesionScore = scorer.run()
+score: CohesionScore = scorer.run(predicted_documents=predicted_documents, gold_documents=documents)
 score.to_dict()  # Convert the evaluation result to a dictionary
 score.export_csv("score.csv")  # Export the evaluation result to `score.csv`
 score.export_txt("score.txt")  # Export the evaluation result to `score.txt`
