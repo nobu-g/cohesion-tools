@@ -390,7 +390,7 @@ class SubCohesionScorer:
                     [e.exophora_referent for e in predicted_mention.entities if e.exophora_referent is not None]
                 )
             else:
-                predicted_other_mentions = set()
+                predicted_other_mentions = []
                 predicted_exophora_referents = set()
 
             if gold_mention := global_index2gold_mention.get(global_index):
@@ -409,14 +409,14 @@ class SubCohesionScorer:
                     [e.exophora_referent for e in gold_mention.entities_all if e.exophora_referent is not None]
                 )
             else:
-                gold_other_mentions = relaxed_gold_other_mentions = set()
+                gold_other_mentions = relaxed_gold_other_mentions = []
                 gold_exophora_referents = relaxed_gold_exophora_referents = set()
 
             key = (global_index, "=")
 
             # compute precision
             if predicted_other_mentions or predicted_exophora_referents:
-                if predicted_other_mentions & relaxed_gold_other_mentions:
+                if any(mention in relaxed_gold_other_mentions for mention in predicted_other_mentions):
                     analysis = "endophora"
                     self.comp_result[key] = analysis
                     metrics[analysis].tp += 1
@@ -431,7 +431,7 @@ class SubCohesionScorer:
 
             # compute recall
             if gold_other_mentions or gold_exophora_referents or self.comp_result.get(key) in ("endophora", "exophora"):
-                if predicted_other_mentions & relaxed_gold_other_mentions:
+                if any(mention in relaxed_gold_other_mentions for mention in predicted_other_mentions):
                     analysis = "endophora"
                     assert self.comp_result[key] == analysis
                 elif predicted_exophora_referents & relaxed_gold_exophora_referents:
@@ -444,11 +444,11 @@ class SubCohesionScorer:
         return pd.Series(metrics)
 
     @staticmethod
-    def _filter_mentions(other_mentions: Set[BasePhrase], mention: BasePhrase) -> Set[BasePhrase]:
+    def _filter_mentions(other_mentions: List[BasePhrase], mention: BasePhrase) -> List[BasePhrase]:
         """filter out cataphora mentions"""
-        return {
+        return [
             another_mention for another_mention in other_mentions if another_mention.global_index < mention.global_index
-        }
+        ]
 
     def _filter_exophora_referents(self, exophora_referents: List[ExophoraReferent]) -> Set[str]:
         filtered = set()
