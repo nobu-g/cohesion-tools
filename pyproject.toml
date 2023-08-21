@@ -8,7 +8,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.8"
-rhoknp = "~1.4.0"
+rhoknp = "~1.4.1"
 pandas = "^2.0"
 
 [tool.poetry.group.dev.dependencies]
