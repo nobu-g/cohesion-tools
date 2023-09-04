@@ -29,8 +29,8 @@ repos:
     hooks:
       - id: mypy
         additional_dependencies:
-          - rhoknp==1.4.0
-          - pandas==2.0.3
+          - rhoknp==1.4.1
+          - pandas==2.1.0
   - repo: https://github.com/asottile/pyupgrade
     rev: v3.10.1
     hooks:
