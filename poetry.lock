@@ -698,4 +698,4 @@ eval = ["pandas", "pandas"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "afa3ae06cdd337d6785039b4425bb424f78d027956d6e49487aafd64d09af796"
+content-hash = "8ce61032e5ae1e95f410cafa9d6540fc201fc8a5a92acdea7b7e42a93f0b60c7"
