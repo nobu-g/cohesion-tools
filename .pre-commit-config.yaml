@@ -7,8 +7,8 @@ repos:
       - id: check-yaml
       - id: check-toml
       - id: check-added-large-files
-  - repo: https://github.com/psf/black
-    rev: 23.7.0
+  - repo: https://github.com/psf/black-pre-commit-mirror
+    rev: 23.9.1
     hooks:
       - id: black
   - repo: https://github.com/PyCQA/flake8
@@ -25,11 +25,11 @@ repos:
     hooks:
       - id: absolufy-imports
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.5.0
+    rev: v1.5.1
     hooks:
       - id: mypy
         additional_dependencies:
-          - rhoknp==1.4.1
+          - rhoknp==1.5.0
           - pandas==2.1.0
   - repo: https://github.com/asottile/pyupgrade
     rev: v3.10.1
