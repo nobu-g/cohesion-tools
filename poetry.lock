@@ -591,13 +591,13 @@ files = [
 
 [[package]]
 name = "rhoknp"
-version = "1.5.0"
+version = "1.5.1"
 description = "Yet another Python binding for Juman++/KNP/KWJA"
 optional = false
 python-versions = ">=3.7,<4.0"
 files = [
-    {file = "rhoknp-1.5.0-py3-none-any.whl", hash = "sha256:9a39bce3d652959f69d2c9ae9d226318c679f30f515b5b10aa1364a880ea9128"},
-    {file = "rhoknp-1.5.0.tar.gz", hash = "sha256:bbc7f9824818a6b8df875d966c8a305ccce7a99188035dd3b485ee2328d41db2"},
+    {file = "rhoknp-1.5.1-py3-none-any.whl", hash = "sha256:2135e85829747867dfe4b6fe0d20ce7870b4df0a00b1affa64286abac1c383c1"},
+    {file = "rhoknp-1.5.1.tar.gz", hash = "sha256:1e4d417a6014b0f30c1d192cedae6eace1d196cbaa6cf92c4950923d73fb1eb8"},
 ]
 
 [package.extras]
