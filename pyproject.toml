@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "cohesion-tools"
-version = "0.5.2"
+version = "0.5.3"
 description = ""
 license = "MIT"
 authors = ["nobu-g <ueda-n127@hotmail.co.jp>"]
