@@ -1,6 +1,8 @@
+default_language_version:
+  python: python3.10
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+    rev: v4.5.0
     hooks:
       - id: end-of-file-fixer
       - id: trailing-whitespace
@@ -8,7 +10,7 @@ repos:
       - id: check-toml
       - id: check-added-large-files
   - repo: https://github.com/psf/black-pre-commit-mirror
-    rev: 23.9.1
+    rev: 23.10.1
     hooks:
       - id: black
   - repo: https://github.com/PyCQA/flake8
@@ -25,14 +27,14 @@ repos:
     hooks:
       - id: absolufy-imports
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.5.1
+    rev: v1.6.1
     hooks:
       - id: mypy
         additional_dependencies:
-          - rhoknp==1.5.0
+          - rhoknp==1.5.1
           - pandas==2.1.0
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.10.1
+    rev: v3.15.0
     hooks:
       - id: pyupgrade
         args:
