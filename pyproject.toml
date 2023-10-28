@@ -43,8 +43,10 @@ ignore = [
     "PLR0913",  # Too many arguments in function definition
     "PLR0915",  # Too many statements
     "E501",  # Line too long
+    "RUF001",  # String contains ambiguous `ノ` (KATAKANA LETTER NO). Did you mean `/` (SOLIDUS)?
+    "RUF002",  # Docstring contains ambiguous `，` (FULLWIDTH COMMA). Did you mean `,` (COMMA)?
 ]
-select = ["F", "E", "W", "I", "B", "PL", "PD", "NPY", "UP"]
+select = ["F", "E", "W", "I", "B", "PL", "PD", "NPY", "RUF", "UP"]
 
 [tool.ruff.pydocstyle]
 convention = "google"

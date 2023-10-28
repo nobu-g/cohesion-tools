@@ -1,12 +1,11 @@
 import copy
 import io
 import logging
-from collections import OrderedDict
 from dataclasses import dataclass
 from functools import reduce
 from operator import add
 from pathlib import Path
-from typing import Any, Collection, Dict, List, Optional, Sequence, Set, TextIO, Union
+from typing import Any, ClassVar, Collection, Dict, List, Optional, Sequence, Set, TextIO, Union
 
 import pandas as pd
 from rhoknp import BasePhrase, Document
@@ -40,14 +39,12 @@ class CohesionScorer:
         coreference: 共参照の評価を行うかどうか (default: False)
     """
 
-    ARGUMENT_TYPE2ANALYSIS = OrderedDict(
-        [
-            (ArgumentType.CASE_EXPLICIT, "overt"),
-            (ArgumentType.CASE_HIDDEN, "dep"),
-            (ArgumentType.OMISSION, "zero_endophora"),
-            (ArgumentType.EXOPHORA, "exophora"),
-        ]
-    )
+    ARGUMENT_TYPE2ANALYSIS: ClassVar[Dict[ArgumentType, str]] = {
+        ArgumentType.CASE_EXPLICIT: "overt",
+        ArgumentType.CASE_HIDDEN: "dep",
+        ArgumentType.OMISSION: "zero_endophora",
+        ArgumentType.EXOPHORA: "exophora",
+    }
 
     def __init__(
         self,
@@ -301,7 +298,7 @@ class SubCohesionScorer:
 
     def _evaluate_bridging(self) -> pd.Series:
         """Compute bridging reference resolution scores"""
-        metrics: Dict[str, Metrics] = OrderedDict((anal, Metrics()) for anal in ("dep", "zero_endophora", "exophora"))
+        metrics: Dict[str, Metrics] = {anal: Metrics() for anal in ("dep", "zero_endophora", "exophora")}
         global_index2predicted_anaphor: Dict[int, Predicate] = {
             p.base_phrase.global_index: p for p in self.predicted_bridging_anaphors
         }
@@ -380,7 +377,7 @@ class SubCohesionScorer:
 
     def _evaluate_coreference(self) -> pd.Series:
         """Compute coreference resolution scores"""
-        metrics: Dict[str, Metrics] = OrderedDict((anal, Metrics()) for anal in ("endophora", "exophora"))
+        metrics: Dict[str, Metrics] = {anal: Metrics() for anal in ("endophora", "exophora")}
         global_index2predicted_mention: Dict[int, BasePhrase] = {p.global_index: p for p in self.predicted_mentions}
         global_index2gold_mention: Dict[int, BasePhrase] = {p.global_index: p for p in self.gold_mentions}
         for global_index in range(len(self.predicted_document.base_phrases)):
