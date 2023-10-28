@@ -13,7 +13,7 @@ def test_to_dict(
 ) -> None:
     expected_scores = json.loads(data_dir.joinpath("expected/score/0.json").read_text())
     score = scorer.run(predicted_documents, gold_documents).to_dict()
-    for task in list(scorer.pas_cases) + ["bridging", "coreference"]:
+    for task in [*scorer.pas_cases, "bridging", "coreference"]:
         task_result = score[task]
         for anal, actual in task_result.items():
             expected: dict = expected_scores[task][anal]
