@@ -16,7 +16,7 @@
 ## Installation
 
 ```bash
-pip install git+https://github.com/nobu-g/cohesion-tools.git
+pip install cohesion-tools  # or cohesion-tools[eval]
 ````
 
 ## Usage
