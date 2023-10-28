@@ -1,7 +1,10 @@
 # Cohesion Tools
 
+[![PyPI](https://img.shields.io/pypi/v/cohesion-tools)](https://pypi.org/project/cohesion-tools/)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/cohesion-tools.svg)](https://pypi.org/project/cohesion-tools/)
 [![test](https://github.com/nobu-g/cohesion-tools/actions/workflows/test.yml/badge.svg)](https://github.com/nobu-g/cohesion-tools/actions/workflows/test.yml)
 [![lint](https://github.com/nobu-g/cohesion-tools/actions/workflows/lint.yml/badge.svg)](https://github.com/nobu-g/cohesion-tools/actions/workflows/lint.yml)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![CodeFactor Grade](https://img.shields.io/codefactor/grade/github/nobu-g/cohesion-tools)](https://www.codefactor.io/repository/github/nobu-g/cohesion-tools)
 [![license](https://img.shields.io/github/license/nobu-g/cohesion-tools?color=blue)](https://github.com/nobu-g/cohesion-tools/blob/main/LICENSE)
 
