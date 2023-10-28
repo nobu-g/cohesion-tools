@@ -13,7 +13,7 @@ authors = ["nobu-g <ueda-n127@hotmail.co.jp>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = ">=3.8,<3.12"
 rhoknp = "~1.5.0"
 pandas = [
     { version = "~2.0.3", python = "3.8", optional = true },
