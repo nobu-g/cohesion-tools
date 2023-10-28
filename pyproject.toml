@@ -1,4 +1,10 @@
+[project]
+name = "cohesion-tools"
+requires-python = ">=3.8"
+
 [tool.poetry]
+# These fields should be unified with `project` section.
+# See https://github.com/python-poetry/poetry/issues/3332
 name = "cohesion-tools"
 version = "0.5.3"
 description = ""
@@ -36,7 +42,7 @@ python_version = 3.8
 [tool.ruff]
 line-length = 120
 indent-width = 4
-target-version = "py38"
+target-version = "py38"  # The minimum Python version to target
 src = ["src"]
 ignore = [
     "PLR0912",  # Too many branches
