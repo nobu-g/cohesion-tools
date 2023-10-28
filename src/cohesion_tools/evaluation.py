@@ -191,7 +191,7 @@ class SubCohesionScorer:
         return CohesionScore(pas_metrics, bridging_metrics, coreference_metric)
 
     def _evaluate_pas(self) -> pd.DataFrame:
-        """compute predicate-argument structure analysis scores"""
+        """Compute predicate-argument structure analysis scores"""
         metrics = pd.DataFrame(
             [[Metrics() for _ in CohesionScorer.ARGUMENT_TYPE2ANALYSIS.values()] for _ in self.pas_cases],
             index=self.pas_cases,
@@ -240,12 +240,12 @@ class SubCohesionScorer:
                         # use argument_type of gold argument if possible
                         analysis = CohesionScorer.ARGUMENT_TYPE2ANALYSIS[relaxed_gold_pas_argument.type]
                         self.comp_result[key] = analysis
-                        metrics.at[pas_case, analysis].tp += 1
+                        metrics.loc[pas_case, analysis].tp += 1
                     else:
                         # system出力のargument_typeはgoldのものと違うので不整合が起きるかもしれない
                         analysis = CohesionScorer.ARGUMENT_TYPE2ANALYSIS[predicted_pas_argument.type]
                         self.comp_result[key] = "wrong"  # precision が下がる
-                    metrics.at[pas_case, analysis].tp_fp += 1
+                    metrics.loc[pas_case, analysis].tp_fp += 1
 
                 # compute recall
                 # 正解が複数ある場合、そのうち一つが当てられていればそれを正解に採用
@@ -268,13 +268,13 @@ class SubCohesionScorer:
                             assert self.comp_result[key] == "wrong"
                         else:
                             self.comp_result[key] = "wrong"  # recall が下がる
-                    metrics.at[pas_case, analysis].tp_fn += 1
+                    metrics.loc[pas_case, analysis].tp_fn += 1
         return metrics
 
     def _filter_arguments(self, arguments: List[Argument], predicate: Predicate) -> List[Argument]:
         filtered = []
-        for argument in arguments:
-            argument = copy.copy(argument)
+        for orig_argument in arguments:
+            argument = copy.copy(orig_argument)
             if argument.case.endswith("≒"):
                 argument.case = argument.case[:-1]
             if argument.case == "判ガ":
@@ -300,7 +300,7 @@ class SubCohesionScorer:
         return filtered
 
     def _evaluate_bridging(self) -> pd.Series:
-        """compute bridging reference resolution scores"""
+        """Compute bridging reference resolution scores"""
         metrics: Dict[str, Metrics] = OrderedDict((anal, Metrics()) for anal in ("dep", "zero_endophora", "exophora"))
         global_index2predicted_anaphor: Dict[int, Predicate] = {
             p.base_phrase.global_index: p for p in self.predicted_bridging_anaphors
@@ -379,7 +379,7 @@ class SubCohesionScorer:
         return pd.Series(metrics)
 
     def _evaluate_coreference(self) -> pd.Series:
-        """compute coreference resolution scores"""
+        """Compute coreference resolution scores"""
         metrics: Dict[str, Metrics] = OrderedDict((anal, Metrics()) for anal in ("endophora", "exophora"))
         global_index2predicted_mention: Dict[int, BasePhrase] = {p.global_index: p for p in self.predicted_mentions}
         global_index2gold_mention: Dict[int, BasePhrase] = {p.global_index: p for p in self.gold_mentions}
@@ -445,15 +445,15 @@ class SubCohesionScorer:
 
     @staticmethod
     def _filter_mentions(other_mentions: List[BasePhrase], mention: BasePhrase) -> List[BasePhrase]:
-        """filter out cataphora mentions"""
+        """Filter out cataphora mentions"""
         return [
             another_mention for another_mention in other_mentions if another_mention.global_index < mention.global_index
         ]
 
     def _filter_exophora_referents(self, exophora_referents: List[ExophoraReferent]) -> Set[str]:
         filtered = set()
-        for exophora_referent in exophora_referents:
-            exophora_referent = copy.copy(exophora_referent)
+        for orig_exophora_referent in exophora_referents:
+            exophora_referent = copy.copy(orig_exophora_referent)
             exophora_referent.index = None
             if exophora_referent.type in self.exophora_referent_types:
                 filtered.add(exophora_referent.text)
@@ -469,7 +469,7 @@ class CohesionScore:
     coreference_metrics: Optional[pd.Series]
 
     def to_dict(self) -> Dict[str, Dict[str, "Metrics"]]:
-        """convert data to dictionary"""
+        """Convert data to dictionary"""
         df_all = pd.DataFrame(index=["all_case"])
         if self.pas is True:
             assert self.pas_metrics is not None
@@ -498,7 +498,7 @@ class CohesionScore:
             df_all.loc["coreference"] = df_coref
 
         return {
-            k1: {k2: v2 for k2, v2 in v1.items() if pd.notnull(v2)} for k1, v1 in df_all.to_dict(orient="index").items()
+            k1: {k2: v2 for k2, v2 in v1.items() if pd.notna(v2)} for k1, v1 in df_all.to_dict(orient="index").items()
         }
 
     def export_txt(self, destination: Union[str, Path, TextIO]) -> None:
@@ -517,7 +517,7 @@ class CohesionScore:
                 lines.append(f"    F        : {metric.f1:.4f}")
         text = "\n".join(lines) + "\n"
 
-        if isinstance(destination, str) or isinstance(destination, Path):
+        if isinstance(destination, (Path, str)):
             Path(destination).write_text(text)
         elif isinstance(destination, io.TextIOBase):
             destination.write(text)
@@ -538,7 +538,7 @@ class CohesionScore:
             text += sep.join(f"{measures[column].f1:.6}" if column in measures else "" for column in columns)
             text += "\n"
 
-        if isinstance(destination, str) or isinstance(destination, Path):
+        if isinstance(destination, (Path, str)):
             Path(destination).write_text(text)
         elif isinstance(destination, io.TextIOBase):
             destination.write(text)

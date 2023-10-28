@@ -93,8 +93,7 @@ class PasExtractor(BaseExtractor):
 
     @staticmethod
     def _get_coreferent_by_rel_tags(base_phrase: BasePhrase) -> Optional[BasePhrase]:
-        """
-        入力した基本句に共参照タグが付与されていた場合共参照先の基本句を返却
+        """入力した基本句に共参照タグが付与されていた場合共参照先の基本句を返却
         共参照タグが付与されていない場合，共参照先の基本句がない場合はNoneを返却
 
         Args:

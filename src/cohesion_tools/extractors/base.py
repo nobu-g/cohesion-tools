@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 from typing import Collection, List, TypeVar
 
 from rhoknp import BasePhrase, Morpheme
@@ -11,13 +11,16 @@ class BaseExtractor(ABC):
     def __init__(self, exophora_referent_types: List[ExophoraReferentType]) -> None:
         self.exophora_referent_types = exophora_referent_types
 
+    @abstractmethod
     def extract_rels(self, base_phrase: BasePhrase):
         raise NotImplementedError
 
+    @abstractmethod
     def is_target(self, base_phrase: BasePhrase) -> bool:
         raise NotImplementedError
 
     @staticmethod
+    @abstractmethod
     def is_candidate(possible_candidate: T, anaphor: T) -> bool:
         raise NotImplementedError
 
