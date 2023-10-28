@@ -52,7 +52,7 @@ ignore = [
     "RUF001",  # String contains ambiguous `ノ` (KATAKANA LETTER NO). Did you mean `/` (SOLIDUS)?
     "RUF002",  # Docstring contains ambiguous `，` (FULLWIDTH COMMA). Did you mean `,` (COMMA)?
 ]
-select = ["F", "E", "W", "I", "B", "PL", "PD", "NPY", "RUF", "UP", "TID"]
+select = ["F", "E", "W", "I", "B", "PL", "PD", "NPY", "RUF", "UP", "TID", "COM", "PT"]
 
 [tool.ruff.pydocstyle]
 convention = "google"

@@ -215,11 +215,15 @@ class SubCohesionScorer:
                     gold_pas_arguments = gold_pas_predicate.pas.get_arguments(pas_case, relax=False)
                     gold_pas_arguments = self._filter_arguments(gold_pas_arguments, gold_pas_predicate)
                     relaxed_gold_pas_arguments = gold_pas_predicate.pas.get_arguments(
-                        pas_case, relax=True, include_nonidentical=True
+                        pas_case,
+                        relax=True,
+                        include_nonidentical=True,
                     )
                     if pas_case == "ガ":
                         relaxed_gold_pas_arguments += gold_pas_predicate.pas.get_arguments(
-                            "判ガ", relax=True, include_nonidentical=True
+                            "判ガ",
+                            relax=True,
+                            include_nonidentical=True,
                         )
                     relaxed_gold_pas_arguments = self._filter_arguments(relaxed_gold_pas_arguments, gold_pas_predicate)
                 else:
@@ -310,7 +314,8 @@ class SubCohesionScorer:
             if global_index in global_index2predicted_anaphor:
                 predicted_anaphor = global_index2predicted_anaphor[global_index]
                 predicted_antecedents: List[Argument] = self._filter_arguments(
-                    predicted_anaphor.pas.get_arguments("ノ", relax=False), predicted_anaphor
+                    predicted_anaphor.pas.get_arguments("ノ", relax=False),
+                    predicted_anaphor,
                 )
             else:
                 predicted_antecedents = []
@@ -320,10 +325,13 @@ class SubCohesionScorer:
             if global_index in global_index2gold_anaphor:
                 gold_anaphor: Predicate = global_index2gold_anaphor[global_index]
                 gold_antecedents: List[Argument] = self._filter_arguments(
-                    gold_anaphor.pas.get_arguments("ノ", relax=False), gold_anaphor
+                    gold_anaphor.pas.get_arguments("ノ", relax=False),
+                    gold_anaphor,
                 )
                 relaxed_gold_antecedents: List[Argument] = gold_anaphor.pas.get_arguments(
-                    "ノ", relax=True, include_nonidentical=True
+                    "ノ",
+                    relax=True,
+                    include_nonidentical=True,
                 )
                 relaxed_gold_antecedents += gold_anaphor.pas.get_arguments("ノ？", relax=True, include_nonidentical=True)
                 relaxed_gold_antecedents = self._filter_arguments(relaxed_gold_antecedents, gold_anaphor)
@@ -384,7 +392,7 @@ class SubCohesionScorer:
             if predicted_mention := global_index2predicted_mention.get(global_index):
                 predicted_other_mentions = self._filter_mentions(predicted_mention.get_coreferents(), predicted_mention)
                 predicted_exophora_referents = self._filter_exophora_referents(
-                    [e.exophora_referent for e in predicted_mention.entities if e.exophora_referent is not None]
+                    [e.exophora_referent for e in predicted_mention.entities if e.exophora_referent is not None],
                 )
             else:
                 predicted_other_mentions = []
@@ -400,10 +408,10 @@ class SubCohesionScorer:
                     gold_mention,
                 )
                 gold_exophora_referents = self._filter_exophora_referents(
-                    [e.exophora_referent for e in gold_mention.entities if e.exophora_referent is not None]
+                    [e.exophora_referent for e in gold_mention.entities if e.exophora_referent is not None],
                 )
                 relaxed_gold_exophora_referents = self._filter_exophora_referents(
-                    [e.exophora_referent for e in gold_mention.entities_all if e.exophora_referent is not None]
+                    [e.exophora_referent for e in gold_mention.entities_all if e.exophora_referent is not None],
                 )
             else:
                 gold_other_mentions = relaxed_gold_other_mentions = []
@@ -557,17 +565,20 @@ class CohesionScore:
 
     def __add__(self, other: "CohesionScore") -> "CohesionScore":
         if self.pas is True:
-            assert self.pas_metrics is not None and other.pas_metrics is not None
+            assert self.pas_metrics is not None
+            assert other.pas_metrics is not None
             pas_metrics = self.pas_metrics + other.pas_metrics
         else:
             pas_metrics = None
         if self.bridging is True:
-            assert self.bridging_metrics is not None and other.bridging_metrics is not None
+            assert self.bridging_metrics is not None
+            assert other.bridging_metrics is not None
             bridging_metrics = self.bridging_metrics + other.bridging_metrics
         else:
             bridging_metrics = None
         if self.coreference is True:
-            assert self.coreference_metrics is not None and other.coreference_metrics is not None
+            assert self.coreference_metrics is not None
+            assert other.coreference_metrics is not None
             coreference_metric = self.coreference_metrics + other.coreference_metrics
         else:
             coreference_metric = None
