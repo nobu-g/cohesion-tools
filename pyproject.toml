@@ -1,6 +1,6 @@
 [project]
 name = "cohesion-tools"
-requires-python = ">=3.8"
+requires-python = ">=3.8,<3.13"
 
 [tool.poetry]
 # These fields should be unified with `project` section.
@@ -13,8 +13,8 @@ authors = ["nobu-g <ueda-n127@hotmail.co.jp>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">=3.8,<3.12"
-rhoknp = "~1.5.0"
+python = ">=3.8,<3.13"
+rhoknp = "~1.5.1"
 pandas = [
     { version = "~2.0.3", python = "3.8", optional = true },
     { version = "^2.0", python = ">=3.9", optional = true },
@@ -34,7 +34,7 @@ eval = ["pandas"]
 
 [tool.black]
 line-length = 120
-target-version = ["py38", "py39", "py310", "py311"]
+target-version = ["py38", "py39", "py310", "py311", "py312"]
 
 [tool.mypy]
 python_version = 3.8
