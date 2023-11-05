@@ -351,7 +351,10 @@ files = [
 ]
 
 [package.dependencies]
-numpy = {version = ">=1.20.3", markers = "python_version < \"3.10\""}
+numpy = [
+    {version = ">=1.20.3", markers = "python_version < \"3.10\""},
+    {version = ">=1.23.2", markers = "python_version >= \"3.11\""},
+]
 python-dateutil = ">=2.8.2"
 pytz = ">=2020.1"
 tzdata = ">=2022.1"
@@ -417,7 +420,6 @@ files = [
 numpy = [
     {version = ">=1.22.4,<2", markers = "python_version < \"3.11\""},
     {version = ">=1.23.2,<2", markers = "python_version == \"3.11\""},
-    {version = ">=1.26.0,<2", markers = "python_version >= \"3.12\""},
 ]
 python-dateutil = ">=2.8.2"
 pytz = ">=2020.1"
@@ -736,5 +738,5 @@ eval = ["pandas", "pandas"]
 
 [metadata]
 lock-version = "2.0"
-python-versions = ">=3.8,<3.13"
-content-hash = "d105b1c6b990a8a1517ce4728d496e622bfd5204f2d6b07c7914b058ffddb7c0"
+python-versions = "^3.8"
+content-hash = "056682a162f3d7f031fba32a2d35c4f2109dd193728bbe8c7c5ccd256a168241"

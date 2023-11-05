@@ -1,6 +1,6 @@
 [project]
 name = "cohesion-tools"
-requires-python = ">=3.8,<3.13"
+requires-python = ">=3.8"
 
 [tool.poetry]
 # These fields should be unified with `project` section.
@@ -13,7 +13,7 @@ authors = ["nobu-g <ueda-n127@hotmail.co.jp>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">=3.8,<3.13"
+python = "^3.8"  # specifying ">=3.8,<3.13" won't let dependents specify like "^3.9"
 rhoknp = "~1.5.1"
 pandas = [
     { version = "~2.0.3", python = "3.8", optional = true },
