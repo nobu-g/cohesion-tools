@@ -5,6 +5,7 @@
 [![test](https://github.com/nobu-g/cohesion-tools/actions/workflows/test.yml/badge.svg)](https://github.com/nobu-g/cohesion-tools/actions/workflows/test.yml)
 [![lint](https://github.com/nobu-g/cohesion-tools/actions/workflows/lint.yml/badge.svg)](https://github.com/nobu-g/cohesion-tools/actions/workflows/lint.yml)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![CodeFactor Grade](https://img.shields.io/codefactor/grade/github/nobu-g/cohesion-tools)](https://www.codefactor.io/repository/github/nobu-g/cohesion-tools)
 [![license](https://img.shields.io/github/license/nobu-g/cohesion-tools?color=blue)](https://github.com/nobu-g/cohesion-tools/blob/main/LICENSE)
 
