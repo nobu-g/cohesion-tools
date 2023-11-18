@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from functools import reduce
 from operator import add
 from pathlib import Path
-from typing import Any, ClassVar, Collection, Dict, List, Optional, Sequence, Set, TextIO, Union
+from typing import ClassVar, Collection, Dict, List, Optional, Sequence, Set, TextIO, Union
 
 import pandas as pd
 from rhoknp import BasePhrase, Document
@@ -139,7 +139,7 @@ class SubCohesionScorer:
         pas_nominal: bool,
         bridging: bool,
         coreference: bool,
-    ):
+    ) -> None:
         assert predicted_document.doc_id == gold_document.doc_id
         self.doc_id: str = gold_document.doc_id
         self.predicted_document: Document = predicted_document
@@ -549,17 +549,17 @@ class CohesionScore:
             destination.write(text)
 
     @property
-    def pas(self):
+    def pas(self) -> bool:
         """Whether self includes the score of predicate-argument structure analysis."""
         return self.pas_metrics is not None
 
     @property
-    def bridging(self):
+    def bridging(self) -> bool:
         """Whether self includes the score of bridging anaphora resolution."""
         return self.bridging_metrics is not None
 
     @property
-    def coreference(self):
+    def coreference(self) -> bool:
         """Whether self includes the score of coreference resolution."""
         return self.coreference_metrics is not None
 
@@ -593,11 +593,11 @@ class Metrics:
     tp_fn: int = 0
     tp: int = 0
 
-    def __add__(self, other: "Metrics"):
+    def __add__(self, other: "Metrics") -> "Metrics":
         return Metrics(self.tp_fp + other.tp_fp, self.tp_fn + other.tp_fn, self.tp + other.tp)
 
-    def __eq__(self, other: Any) -> bool:
-        if isinstance(other, type(self)) is False:
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, type(self)):
             return False
         return (self.tp_fp == other.tp_fp) and (self.tp_fn == other.tp_fn) and (self.tp == other.tp)
 

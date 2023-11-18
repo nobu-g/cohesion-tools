@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Collection, List, TypeVar
+from typing import Any, Collection, List, TypeVar
 
 from rhoknp import BasePhrase, Morpheme
 from rhoknp.cohesion import ExophoraReferentType
@@ -12,7 +12,7 @@ class BaseExtractor(ABC):
         self.exophora_referent_types = exophora_referent_types
 
     @abstractmethod
-    def extract_rels(self, base_phrase: BasePhrase):
+    def extract_rels(self, base_phrase: BasePhrase) -> Collection[Any]:
         raise NotImplementedError
 
     @abstractmethod
