@@ -166,11 +166,10 @@ class SubCohesionScorer:
         self.gold_bridging_anaphors: List[Predicate] = []
         self.gold_mentions: List[BasePhrase] = []
         for base_phrase in gold_document.base_phrases:
-            if PasExtractor.is_pas_target(base_phrase, verbal=pas_verbal, nominal=pas_nominal):
-                self.gold_pas_predicates.append(base_phrase.pas.predicate)
-            if self.bridging is True and BridgingExtractor.is_bridging_target(base_phrase):
+            self.gold_pas_predicates.append(base_phrase.pas.predicate)
+            if self.bridging is True:
                 self.gold_bridging_anaphors.append(base_phrase.pas.predicate)
-            if self.coreference is True and CoreferenceExtractor.is_coreference_target(base_phrase):
+            if self.coreference is True:
                 self.gold_mentions.append(base_phrase)
 
         self.comp_result: Dict[tuple, str] = {}
