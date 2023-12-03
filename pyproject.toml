@@ -6,7 +6,7 @@ requires-python = ">=3.8"
 # These fields should be unified with `project` section.
 # See https://github.com/python-poetry/poetry/issues/3332
 name = "cohesion-tools"
-version = "0.5.7"
+version = "0.6.0"
 description = ""
 license = "MIT"
 authors = ["nobu-g <ueda-n127@hotmail.co.jp>"]
