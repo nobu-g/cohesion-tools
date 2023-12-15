@@ -1,5 +1,4 @@
 import io
-import logging
 from dataclasses import dataclass
 from functools import reduce
 from operator import add
@@ -18,8 +17,6 @@ from cohesion_tools.evaluators.pas import PASAnalysisEvaluator
 from cohesion_tools.evaluators.utils import F1Metric
 from cohesion_tools.task import Task
 
-logger = logging.getLogger(__name__)
-
 
 class CohesionEvaluator:
     """結束性解析の評価を行うクラス
@@ -28,16 +25,16 @@ class CohesionEvaluator:
     :class:`rhoknp.Document`
 
     Args:
+        tasks: 評価の対象とするタスク (cohesion_tools.task.Task を参照)
         exophora_referent_types: 評価の対象とする外界照応の照応先 (rhoknp.cohesion.ExophoraReferentTypeType を参照)
         pas_cases: 述語項構造の評価の対象とする格 (rhoknp.cohesion.rel.CASE_TYPES を参照)
-        tasks: 評価の対象とするタスク (cohesion_tools.task.Task を参照)
     """
 
     def __init__(
         self,
+        tasks: Union[Collection[Task], Collection[str]],
         exophora_referent_types: Collection[ExophoraReferentType],
         pas_cases: Collection[str],
-        tasks: Union[Collection[Task], Collection[str]],
     ) -> None:
         self.exophora_referent_types: List[ExophoraReferentType] = list(exophora_referent_types)
         self.pas_cases: List[str] = list(pas_cases)
