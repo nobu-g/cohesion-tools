@@ -1,6 +1,7 @@
 import copy
 import io
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass
 from functools import reduce
 from operator import add
@@ -19,13 +20,11 @@ from rhoknp.cohesion import (
     Predicate,
 )
 
-from cohesion_tools.extractors import BridgingExtractor, CoreferenceExtractor, PasExtractor
-
 logger = logging.getLogger(__name__)
 
 
 class CohesionEvaluator:
-    """A class to evaluate system output.
+    """結束性解析の評価を行うクラス
 
     To evaluate system output with this class, you have to prepare gold data and system prediction data as instances of
     :class:`rhoknp.Document`
@@ -33,34 +32,24 @@ class CohesionEvaluator:
     Args:
         exophora_referent_types: 評価の対象とする外界照応の照応先 (rhoknp.cohesion.ExophoraReferentTypeType を参照)
         pas_cases: 述語項構造の評価の対象とする格 (rhoknp.cohesion.rel.CASE_TYPES を参照)
-        pas_verbal: 述語項構造解析において用言を述語として扱うかどうか (default: True)
-        pas_nominal: 述語項構造解析において体言を述語として扱うかどうか (default: True)
         bridging: 橋渡し照応の評価を行うかどうか (default: False)
         coreference: 共参照の評価を行うかどうか (default: False)
     """
-
-    ARGUMENT_TYPE2ANALYSIS: ClassVar[Dict[ArgumentType, str]] = {
-        ArgumentType.CASE_EXPLICIT: "overt",
-        ArgumentType.CASE_HIDDEN: "dep",
-        ArgumentType.OMISSION: "zero_endophora",
-        ArgumentType.EXOPHORA: "exophora",
-    }
 
     def __init__(
         self,
         exophora_referent_types: Collection[ExophoraReferentType],
         pas_cases: Collection[str],
-        pas_verbal: bool = True,
-        pas_nominal: bool = True,
         bridging: bool = False,
         coreference: bool = False,
     ) -> None:
         self.exophora_referent_types: List[ExophoraReferentType] = list(exophora_referent_types)
         self.pas_cases: List[str] = list(pas_cases)
-        self.pas_verbal: bool = pas_verbal
-        self.pas_nominal: bool = pas_nominal
         self.bridging: bool = bridging
         self.coreference: bool = coreference
+        self.pas_evaluator = PASAnalysisEvaluator(exophora_referent_types, pas_cases)
+        self.bridging_evaluator = BridgingReferenceResolutionEvaluator(exophora_referent_types, pas_cases)
+        self.coreference_evaluator = CoreferenceResolutionEvaluator(exophora_referent_types)
 
     def run(self, predicted_documents: Sequence[Document], gold_documents: Sequence[Document]) -> "CohesionScore":
         """読み込んだ正解文書集合とシステム予測文書集合に対して評価を行う
@@ -78,180 +67,116 @@ class CohesionEvaluator:
         doc_id2predicted_document: Dict[str, Document] = {d.doc_id: d for d in predicted_documents}
         doc_id2gold_document: Dict[str, Document] = {d.doc_id: d for d in gold_documents}
 
-        comp_result: Dict[tuple, str] = {}
-        sub_scorers: List[SubCohesionScorer] = []
         results = []
         for doc_id in doc_ids:
-            sub_scorer = SubCohesionScorer(
-                doc_id2predicted_document[doc_id],
-                doc_id2gold_document[doc_id],
-                exophora_referent_types=self.exophora_referent_types,
-                pas_cases=self.pas_cases,
-                pas_verbal=self.pas_verbal,
-                pas_nominal=self.pas_nominal,
-                bridging=self.bridging,
-                coreference=self.coreference,
-            )
-            results.append(sub_scorer.run())
-            sub_scorers.append(sub_scorer)
-            comp_result.update({(doc_id, *k): v for k, v in sub_scorer.comp_result.items()})
+            predicted_document = doc_id2predicted_document[doc_id]
+            gold_document = doc_id2gold_document[doc_id]
+            results.append(self.run_single(predicted_document, gold_document))
         return reduce(add, results)
 
+    def run_single(self, predicted_document: Document, gold_document: Document) -> "CohesionScore":
+        """Compute cohesion scores for a pair of gold document and predicted document"""
+        assert len(predicted_document.base_phrases) == len(gold_document.base_phrases)
 
-class SubCohesionScorer:
-    """Scorer for single document pair.
+        pas_metrics = self.pas_evaluator.run(predicted_document, gold_document)
+        bridging_metrics = self.bridging_evaluator.run(predicted_document, gold_document) if self.bridging else None
+        coreference_metric = (
+            self.coreference_evaluator.run(predicted_document, gold_document) if self.coreference else None
+        )
+
+        return CohesionScore(pas_metrics, bridging_metrics, coreference_metric)
+
+
+class PASAnalysisEvaluator:
+    """述語項構造解析の評価を行うクラス
+
+    To evaluate system output with this class, you have to prepare gold data and system prediction data as instances of
+    :class:`rhoknp.Document`
 
     Args:
-        predicted_document: システム予測文書
-        gold_document: 正解文書
-        exophora_referent_types: 評価の対象とする外界照応の照応先
-        pas_cases: 述語項構造の評価の対象とする格
-        pas_verbal: 述語項構造解析において用言を述語として扱うかどうか (default: True)
-        pas_nominal: 述語項構造解析において体言を述語として扱うかどうか (default: True)
-        bridging: 橋渡し照応の評価を行うかどうか (default: False)
-        coreference: 共参照の評価を行うかどうか (default: False)
-
-    Attributes:
-        doc_id: 対象の文書ID
-        predicted_document: システム予測文書
-        gold_document: 正解文書
-        exophora_referent_types: 評価の対象とする外界照応の照応先
-        pas_cases: 評価の対象となる格
-        pas: 述語項構造の評価を行うかどうか
-        bridging: 橋渡し照応の評価を行うかどうか
-        coreference: 共参照の評価を行うかどうか
-        predicted_pas_predicates: システム予測文書に含まれる述語
-        predicted_bridging_anaphors: システム予測文書に含まれる橋渡し照応詞
-        predicted_mentions: システム予測文書に含まれるメンション
-        gold_pas_predicates: 正解文書に含まれる述語
-        gold_bridging_anaphors: 正解文書に含まれる橋渡し照応詞
-        gold_mentions: 正解文書に含まれるメンション
-        comp_result: 正解と予測を比較した結果を格納するための辞書
+        exophora_referent_types: 評価の対象とする外界照応の照応先 (rhoknp.cohesion.ExophoraReferentTypeType を参照)
+        cases: 述語項構造の評価の対象とする格 (rhoknp.cohesion.rel.CASE_TYPES を参照)
     """
+
+    ARGUMENT_TYPE_TO_ANALYSIS_TYPE: ClassVar[Dict[ArgumentType, str]] = {
+        ArgumentType.CASE_EXPLICIT: "overt",
+        ArgumentType.CASE_HIDDEN: "dep",
+        ArgumentType.OMISSION: "zero_endophora",
+        ArgumentType.EXOPHORA: "exophora",
+    }
 
     def __init__(
         self,
-        predicted_document: Document,
-        gold_document: Document,
         exophora_referent_types: Collection[ExophoraReferentType],
-        pas_cases: Collection[str],
-        pas_verbal: bool,
-        pas_nominal: bool,
-        bridging: bool,
-        coreference: bool,
+        cases: Collection[str],
     ) -> None:
-        assert predicted_document.doc_id == gold_document.doc_id
-        self.doc_id: str = gold_document.doc_id
-        self.predicted_document: Document = predicted_document
-        self.gold_document: Document = gold_document
-
         self.exophora_referent_types: List[ExophoraReferentType] = list(exophora_referent_types)
-        self.pas_cases: List[str] = list(pas_cases)
-        self.pas: bool = len(pas_cases) > 0 and (pas_verbal or pas_nominal)
-        self.bridging: bool = bridging
-        self.coreference: bool = coreference
-
-        self.predicted_pas_predicates: List[Predicate] = []
-        self.predicted_bridging_anaphors: List[Predicate] = []
-        self.predicted_mentions: List[BasePhrase] = []
-        for base_phrase in predicted_document.base_phrases:
-            if PasExtractor.is_pas_target(base_phrase, verbal=pas_verbal, nominal=pas_nominal):
-                self.predicted_pas_predicates.append(base_phrase.pas.predicate)
-            if self.bridging is True and BridgingExtractor.is_bridging_target(base_phrase):
-                self.predicted_bridging_anaphors.append(base_phrase.pas.predicate)
-            if self.coreference is True and CoreferenceExtractor.is_coreference_target(base_phrase):
-                self.predicted_mentions.append(base_phrase)
-
-        self.gold_pas_predicates: List[Predicate] = []
-        self.gold_bridging_anaphors: List[Predicate] = []
-        self.gold_mentions: List[BasePhrase] = []
-        for base_phrase in gold_document.base_phrases:
-            self.gold_pas_predicates.append(base_phrase.pas.predicate)
-            if self.bridging is True:
-                self.gold_bridging_anaphors.append(base_phrase.pas.predicate)
-            if self.coreference is True:
-                self.gold_mentions.append(base_phrase)
-
+        self.cases: List[str] = list(cases)
+        self.predicate_filter: Callable[[Predicate], bool] = lambda _: True
         self.comp_result: Dict[tuple, str] = {}
 
-    def run(self) -> "CohesionScore":
-        """Perform evaluation for the given gold document and system prediction document.
-
-        Returns:
-            CohesionScore: 評価結果のスコア
-        """
-        self.comp_result.clear()
-        pas_metrics = self._evaluate_pas() if self.pas is True else None
-        bridging_metrics = self._evaluate_bridging() if self.bridging is True else None
-        coreference_metric = self._evaluate_coreference() if self.coreference is True else None
-        return CohesionScore(pas_metrics, bridging_metrics, coreference_metric)
-
-    def _evaluate_pas(self) -> pd.DataFrame:
+    def run(self, predicted_document: Document, gold_document: Document) -> pd.DataFrame:
         """Compute predicate-argument structure analysis scores"""
+        predicted_predicates = [base_phrase.pas.predicate for base_phrase in predicted_document.base_phrases]
+        gold_predicates = [base_phrase.pas.predicate for base_phrase in gold_document.base_phrases]
         metrics = pd.DataFrame(
-            [[Metrics() for _ in CohesionEvaluator.ARGUMENT_TYPE2ANALYSIS.values()] for _ in self.pas_cases],
-            index=self.pas_cases,
-            columns=list(CohesionEvaluator.ARGUMENT_TYPE2ANALYSIS.values()),
+            [[Metrics() for _ in self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE.values()] for _ in self.cases],
+            index=self.cases,
+            columns=list(self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE.values()),
         )
-        global_index2predicted_pas_predicate: Dict[int, Predicate] = {
-            p.base_phrase.global_index: p for p in self.predicted_pas_predicates
-        }
-        global_index2gold_pas_predicate: Dict[int, Predicate] = {
-            p.base_phrase.global_index: p for p in self.gold_pas_predicates
-        }
 
-        for global_index in range(len(self.predicted_document.base_phrases)):
-            for pas_case in self.pas_cases:
-                if predicted_pas_predicate := global_index2predicted_pas_predicate.get(global_index):
-                    predicted_pas_arguments = predicted_pas_predicate.pas.get_arguments(pas_case, relax=False)
-                    predicted_pas_arguments = self._filter_arguments(predicted_pas_arguments, predicted_pas_predicate)
+        assert len(predicted_predicates) == len(gold_predicates)
+        for predicted_predicate, gold_predicate in zip(predicted_predicates, gold_predicates):
+            for pas_case in self.cases:
+                if self.predicate_filter(predicted_predicate) is True:
+                    predicted_pas_arguments = predicted_predicate.pas.get_arguments(pas_case, relax=False)
+                    predicted_pas_arguments = self._filter_arguments(predicted_pas_arguments, predicted_predicate)
                 else:
                     predicted_pas_arguments = []
-                # this project predicts one argument for one predicate
+                # Assuming one argument for one predicate
                 assert len(predicted_pas_arguments) in (0, 1)
 
-                if gold_pas_predicate := global_index2gold_pas_predicate.get(global_index):
-                    gold_pas_arguments = gold_pas_predicate.pas.get_arguments(pas_case, relax=False)
-                    gold_pas_arguments = self._filter_arguments(gold_pas_arguments, gold_pas_predicate)
-                    relaxed_gold_pas_arguments = gold_pas_predicate.pas.get_arguments(
+                if self.predicate_filter(gold_predicate) is True:
+                    gold_pas_arguments = gold_predicate.pas.get_arguments(pas_case, relax=False)
+                    gold_pas_arguments = self._filter_arguments(gold_pas_arguments, gold_predicate)
+                    relaxed_gold_pas_arguments = gold_predicate.pas.get_arguments(
                         pas_case,
                         relax=True,
                         include_nonidentical=True,
                     )
                     if pas_case == "ガ":
-                        relaxed_gold_pas_arguments += gold_pas_predicate.pas.get_arguments(
+                        relaxed_gold_pas_arguments += gold_predicate.pas.get_arguments(
                             "判ガ",
                             relax=True,
                             include_nonidentical=True,
                         )
-                    relaxed_gold_pas_arguments = self._filter_arguments(relaxed_gold_pas_arguments, gold_pas_predicate)
+                    relaxed_gold_pas_arguments = self._filter_arguments(relaxed_gold_pas_arguments, gold_predicate)
                 else:
                     gold_pas_arguments = relaxed_gold_pas_arguments = []
 
-                key = (global_index, pas_case)
+                key = (predicted_predicate.base_phrase.global_index, pas_case)
 
-                # compute precision
+                # Compute precision
                 if len(predicted_pas_arguments) > 0:
                     predicted_pas_argument = predicted_pas_arguments[0]
                     if predicted_pas_argument in relaxed_gold_pas_arguments:
                         relaxed_gold_pas_argument = relaxed_gold_pas_arguments[
                             relaxed_gold_pas_arguments.index(predicted_pas_argument)
                         ]
-                        # use argument_type of gold argument if possible
-                        analysis = CohesionEvaluator.ARGUMENT_TYPE2ANALYSIS[relaxed_gold_pas_argument.type]
+                        # Use argument_type of gold argument if possible
+                        analysis = self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE[relaxed_gold_pas_argument.type]
                         self.comp_result[key] = analysis
                         metrics.loc[pas_case, analysis].tp += 1
                     else:
-                        # system出力のargument_typeはgoldのものと違うので不整合が起きるかもしれない
-                        analysis = CohesionEvaluator.ARGUMENT_TYPE2ANALYSIS[predicted_pas_argument.type]
+                        analysis = self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE[predicted_pas_argument.type]
                         self.comp_result[key] = "wrong"  # precision が下がる
                     metrics.loc[pas_case, analysis].tp_fp += 1
 
-                # compute recall
+                # Compute recall
                 # 正解が複数ある場合、そのうち一つが当てられていればそれを正解に採用
                 if (
                     len(gold_pas_arguments) > 0
-                    or self.comp_result.get(key) in CohesionEvaluator.ARGUMENT_TYPE2ANALYSIS.values()
+                    or self.comp_result.get(key) in self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE.values()
                 ):
                     recalled_pas_argument: Optional[Argument] = None
                     for relaxed_gold_pas_argument in relaxed_gold_pas_arguments:
@@ -259,11 +184,11 @@ class SubCohesionScorer:
                             recalled_pas_argument = relaxed_gold_pas_argument  # 予測されている項を優先して正解の項に採用
                             break
                     if recalled_pas_argument is not None:
-                        analysis = CohesionEvaluator.ARGUMENT_TYPE2ANALYSIS[recalled_pas_argument.type]
+                        analysis = self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE[recalled_pas_argument.type]
                         assert self.comp_result[key] == analysis
                     else:
                         # いずれも当てられていなければ、relax されていない項から一つを選び正解に採用
-                        analysis = CohesionEvaluator.ARGUMENT_TYPE2ANALYSIS[gold_pas_arguments[0].type]
+                        analysis = self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE[gold_pas_arguments[0].type]
                         if len(predicted_pas_arguments) > 0:
                             assert self.comp_result[key] == "wrong"
                         else:
@@ -279,18 +204,16 @@ class SubCohesionScorer:
                 argument.case = argument.case[:-1]
             if argument.case == "判ガ":
                 argument.case = "ガ"
-            if argument.case == "ノ？":
-                argument.case = "ノ"
             if isinstance(argument, ExophoraArgument):
                 argument.exophora_referent.index = None  # 「不特定:人１」なども「不特定:人」として扱う
                 if argument.exophora_referent.type not in self.exophora_referent_types:
                     continue
             else:
                 assert isinstance(argument, EndophoraArgument)
-                # filter out self-anaphora
+                # Filter out self-anaphora
                 if argument.base_phrase == predicate.base_phrase:
                     continue
-                # filter out cataphora
+                # Filter out cataphora
                 if (
                     argument.base_phrase.global_index > predicate.base_phrase.global_index
                     and argument.base_phrase.sentence.sid != predicate.base_phrase.sentence.sid
@@ -299,31 +222,54 @@ class SubCohesionScorer:
             filtered.append(argument)
         return filtered
 
-    def _evaluate_bridging(self) -> pd.Series:
-        """Compute bridging reference resolution scores"""
-        metrics: Dict[str, Metrics] = {anal: Metrics() for anal in ("dep", "zero_endophora", "exophora")}
-        global_index2predicted_anaphor: Dict[int, Predicate] = {
-            p.base_phrase.global_index: p for p in self.predicted_bridging_anaphors
-        }
-        global_index2gold_anaphor: Dict[int, Predicate] = {
-            p.base_phrase.global_index: p for p in self.gold_bridging_anaphors
-        }
 
-        for global_index in range(len(self.predicted_document.base_phrases)):
-            if global_index in global_index2predicted_anaphor:
-                predicted_anaphor = global_index2predicted_anaphor[global_index]
-                predicted_antecedents: List[Argument] = self._filter_arguments(
+class BridgingReferenceResolutionEvaluator:
+    """橋渡し参照解析の評価を行うクラス
+
+    To evaluate system output with this class, you have to prepare gold data and system prediction data as instances of
+    :class:`rhoknp.Document`
+
+    Args:
+        exophora_referent_types: 評価の対象とする外界照応の照応先 (rhoknp.cohesion.ExophoraReferentTypeType を参照)
+    """
+
+    ARGUMENT_TYPE_TO_ANALYSIS_TYPE: ClassVar[Dict[ArgumentType, str]] = {
+        ArgumentType.CASE_EXPLICIT: "dep",
+        ArgumentType.CASE_HIDDEN: "dep",
+        ArgumentType.OMISSION: "zero_endophora",
+        ArgumentType.EXOPHORA: "exophora",
+    }
+
+    def __init__(
+        self,
+        exophora_referent_types: Collection[ExophoraReferentType],
+        rel_types: Collection[str],
+    ) -> None:
+        self.exophora_referent_types: List[ExophoraReferentType] = list(exophora_referent_types)
+        self.rel_types: List[str] = list(rel_types)
+        self.anaphor_filter: Callable[[Predicate], bool] = lambda _: True
+        self.comp_result: Dict[tuple, str] = {}
+
+    def run(self, predicted_document: Document, gold_document: Document) -> pd.Series:
+        """Compute bridging reference resolution scores"""
+        predicted_anaphors = [base_phrase.pas.predicate for base_phrase in predicted_document.base_phrases]
+        gold_anaphors = [base_phrase.pas.predicate for base_phrase in gold_document.base_phrases]
+        metrics: Dict[str, Metrics] = {anal: Metrics() for anal in ("dep", "zero_endophora", "exophora")}
+
+        assert len(predicted_anaphors) == len(gold_anaphors)
+        for predicted_anaphor, gold_anaphor in zip(predicted_anaphors, gold_anaphors):
+            if self.anaphor_filter(predicted_anaphor) is True:
+                predicted_antecedents: List[Argument] = self._filter_referents(
                     predicted_anaphor.pas.get_arguments("ノ", relax=False),
                     predicted_anaphor,
                 )
             else:
                 predicted_antecedents = []
-            # this project predicts one antecedent for one anaphor
+            # Assuming one antecedent for one anaphor
             assert len(predicted_antecedents) in (0, 1)
 
-            if global_index in global_index2gold_anaphor:
-                gold_anaphor: Predicate = global_index2gold_anaphor[global_index]
-                gold_antecedents: List[Argument] = self._filter_arguments(
+            if self.anaphor_filter(gold_anaphor) is True:
+                gold_antecedents: List[Argument] = self._filter_referents(
                     gold_anaphor.pas.get_arguments("ノ", relax=False),
                     gold_anaphor,
                 )
@@ -333,48 +279,41 @@ class SubCohesionScorer:
                     include_nonidentical=True,
                 )
                 relaxed_gold_antecedents += gold_anaphor.pas.get_arguments("ノ？", relax=True, include_nonidentical=True)
-                relaxed_gold_antecedents = self._filter_arguments(relaxed_gold_antecedents, gold_anaphor)
+                relaxed_gold_antecedents = self._filter_referents(relaxed_gold_antecedents, gold_anaphor)
             else:
                 gold_antecedents = relaxed_gold_antecedents = []
 
-            key = (global_index, "ノ")
+            key = (predicted_anaphor.base_phrase.global_index, "ノ")
 
-            # compute precision
+            # Compute precision
             if len(predicted_antecedents) > 0:
                 predicted_antecedent = predicted_antecedents[0]
                 if predicted_antecedent in relaxed_gold_antecedents:
-                    # use argument_type of gold antecedent if possible
                     relaxed_gold_antecedent = relaxed_gold_antecedents[
                         relaxed_gold_antecedents.index(predicted_antecedent)
                     ]
-                    analysis = CohesionEvaluator.ARGUMENT_TYPE2ANALYSIS[relaxed_gold_antecedent.type]
-                    if analysis == "overt":
-                        analysis = "dep"
+                    analysis = self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE[relaxed_gold_antecedent.type]
                     self.comp_result[key] = analysis
                     metrics[analysis].tp += 1
                 else:
-                    analysis = CohesionEvaluator.ARGUMENT_TYPE2ANALYSIS[predicted_antecedent.type]
-                    if analysis == "overt":
-                        analysis = "dep"
+                    analysis = self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE[predicted_antecedent.type]
                     self.comp_result[key] = "wrong"
                 metrics[analysis].tp_fp += 1
 
-            # calculate recall
-            if gold_antecedents or (
-                self.comp_result.get(key, None) in CohesionEvaluator.ARGUMENT_TYPE2ANALYSIS.values()
-            ):
+            # Compute recall
+            if gold_antecedents or (self.comp_result.get(key, None) in self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE.values()):
                 recalled_antecedent: Optional[Argument] = None
                 for relaxed_gold_antecedent in relaxed_gold_antecedents:
                     if relaxed_gold_antecedent in predicted_antecedents:
                         recalled_antecedent = relaxed_gold_antecedent  # 予測されている先行詞を優先して正解の先行詞に採用
                         break
                 if recalled_antecedent is not None:
-                    analysis = CohesionEvaluator.ARGUMENT_TYPE2ANALYSIS[recalled_antecedent.type]
+                    analysis = self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE[recalled_antecedent.type]
                     if analysis == "overt":
                         analysis = "dep"
                     assert self.comp_result[key] == analysis
                 else:
-                    analysis = CohesionEvaluator.ARGUMENT_TYPE2ANALYSIS[gold_antecedents[0].type]
+                    analysis = self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE[gold_antecedents[0].type]
                     if analysis == "overt":
                         analysis = "dep"
                     if len(predicted_antecedents) > 0:
@@ -384,13 +323,54 @@ class SubCohesionScorer:
                 metrics[analysis].tp_fn += 1
         return pd.Series(metrics)
 
-    def _evaluate_coreference(self) -> pd.Series:
+    def _filter_referents(self, referents: List[Argument], anaphor: Predicate) -> List[Argument]:
+        filtered = []
+        for orig_referent in referents:
+            referent = copy.copy(orig_referent)
+            if referent.case.endswith("≒"):
+                referent.case = referent.case[:-1]
+            if referent.case == "ノ？":
+                referent.case = "ノ"
+            if isinstance(referent, ExophoraArgument):
+                referent.exophora_referent.index = None  # 「不特定:人１」なども「不特定:人」として扱う
+                if referent.exophora_referent.type not in self.exophora_referent_types:
+                    continue
+            else:
+                assert isinstance(referent, EndophoraArgument)
+                # Filter out self-anaphora
+                if referent.base_phrase == anaphor.base_phrase:
+                    continue
+                # Filter out cataphora
+                if (
+                    referent.base_phrase.global_index > anaphor.base_phrase.global_index
+                    and referent.base_phrase.sentence.sid != anaphor.base_phrase.sentence.sid
+                ):
+                    continue
+            filtered.append(referent)
+        return filtered
+
+
+class CoreferenceResolutionEvaluator:
+    """共参照解析の評価を行うクラス
+
+    To evaluate system output with this class, you have to prepare gold data and system prediction data as instances of
+    :class:`rhoknp.Document`
+
+    Args:
+        exophora_referent_types: 評価の対象とする外界照応の照応先 (rhoknp.cohesion.ExophoraReferentTypeType を参照)
+    """
+
+    def __init__(self, exophora_referent_types: Collection[ExophoraReferentType]) -> None:
+        self.exophora_referent_types: List[ExophoraReferentType] = list(exophora_referent_types)
+        self.mention_filter: Callable[[BasePhrase], bool] = lambda _: True
+        self.comp_result: Dict[tuple, str] = {}
+
+    def run(self, predicted_document: Document, gold_document: Document) -> pd.Series:
         """Compute coreference resolution scores"""
+        assert len(predicted_document.base_phrases) == len(gold_document.base_phrases)
         metrics: Dict[str, Metrics] = {anal: Metrics() for anal in ("endophora", "exophora")}
-        global_index2predicted_mention: Dict[int, BasePhrase] = {p.global_index: p for p in self.predicted_mentions}
-        global_index2gold_mention: Dict[int, BasePhrase] = {p.global_index: p for p in self.gold_mentions}
-        for global_index in range(len(self.predicted_document.base_phrases)):
-            if predicted_mention := global_index2predicted_mention.get(global_index):
+        for predicted_mention, gold_mention in zip(predicted_document.base_phrases, gold_document.base_phrases):
+            if self.mention_filter(predicted_mention) is True:
                 predicted_other_mentions = self._filter_mentions(predicted_mention.get_coreferents(), predicted_mention)
                 predicted_exophora_referents = self._filter_exophora_referents(
                     [e.exophora_referent for e in predicted_mention.entities if e.exophora_referent is not None],
@@ -399,7 +379,7 @@ class SubCohesionScorer:
                 predicted_other_mentions = []
                 predicted_exophora_referents = set()
 
-            if gold_mention := global_index2gold_mention.get(global_index):
+            if self.mention_filter(gold_mention) is True:
                 gold_other_mentions = self._filter_mentions(
                     gold_mention.get_coreferents(include_nonidentical=False),
                     gold_mention,
@@ -418,9 +398,9 @@ class SubCohesionScorer:
                 gold_other_mentions = relaxed_gold_other_mentions = []
                 gold_exophora_referents = relaxed_gold_exophora_referents = set()
 
-            key = (global_index, "=")
+            key = (predicted_mention.global_index, "=")
 
-            # compute precision
+            # Compute precision
             if predicted_other_mentions or predicted_exophora_referents:
                 if any(mention in relaxed_gold_other_mentions for mention in predicted_other_mentions):
                     analysis = "endophora"
@@ -435,7 +415,7 @@ class SubCohesionScorer:
                     self.comp_result[key] = "wrong"
                 metrics[analysis].tp_fp += 1
 
-            # compute recall
+            # Compute recall
             if gold_other_mentions or gold_exophora_referents or self.comp_result.get(key) in ("endophora", "exophora"):
                 if any(mention in relaxed_gold_other_mentions for mention in predicted_other_mentions):
                     analysis = "endophora"

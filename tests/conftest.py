@@ -28,8 +28,6 @@ def scorer() -> CohesionEvaluator:
     return CohesionEvaluator(
         exophora_referent_types=list(map(ExophoraReferentType, ("著者", "読者", "不特定:人", "不特定:物"))),
         pas_cases=["ガ", "ヲ"],
-        pas_verbal=True,
-        pas_nominal=True,
         bridging=True,
         coreference=True,
     )
