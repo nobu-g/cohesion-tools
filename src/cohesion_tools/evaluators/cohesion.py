@@ -103,8 +103,7 @@ class CohesionScore:
     def to_dict(self) -> Dict[str, Dict[str, F1Metric]]:
         """Convert data to dictionary"""
         df_all = pd.DataFrame(index=["pas"])
-        if self.pas is True:
-            assert self.pas_metrics is not None
+        if self.pas_metrics is not None:
             df_pas: pd.DataFrame = self.pas_metrics.copy()
             df_pas["overt_dep"] = df_pas["overt"] + df_pas["dep"]
             df_pas["endophora"] = df_pas["overt"] + df_pas["dep"] + df_pas["zero_endophora"]
@@ -115,8 +114,7 @@ class CohesionScore:
             df_all = pd.concat([df_pas, df_all])
             df_all.loc["pas"] = df_pas.sum(axis=0)
 
-        if self.bridging is True:
-            assert self.bridging_metrics is not None
+        if self.bridging_metrics is not None:
             df_bridging: pd.DataFrame = self.bridging_metrics.copy()
             df_bridging["endophora"] = df_bridging["dep"] + df_bridging["zero_endophora"]
             df_bridging["zero"] = df_bridging["zero_endophora"] + df_bridging["exophora"]
@@ -126,8 +124,7 @@ class CohesionScore:
             df_all = pd.concat([df_all, df_bridging])
             df_all.loc["bridging"] = df_bridging.sum(axis=0)
 
-        if self.coreference is True:
-            assert self.coreference_metrics is not None
+        if self.coreference_metrics is not None:
             df_coref = self.coreference_metrics.copy()
             df_coref["all"] = df_coref["endophora"] + df_coref["exophora"]
             df_all.loc["coreference"] = df_coref
@@ -178,36 +175,18 @@ class CohesionScore:
         elif isinstance(destination, io.TextIOBase):
             destination.write(text)
 
-    @property
-    def pas(self) -> bool:
-        """Whether self includes the score of predicate-argument structure analysis."""
-        return self.pas_metrics is not None
-
-    @property
-    def bridging(self) -> bool:
-        """Whether self includes the score of bridging anaphora resolution."""
-        return self.bridging_metrics is not None
-
-    @property
-    def coreference(self) -> bool:
-        """Whether self includes the score of coreference resolution."""
-        return self.coreference_metrics is not None
-
     def __add__(self, other: "CohesionScore") -> "CohesionScore":
-        if self.pas is True:
-            assert self.pas_metrics is not None
+        if self.pas_metrics is not None:
             assert other.pas_metrics is not None
             pas_metrics = self.pas_metrics + other.pas_metrics
         else:
             pas_metrics = None
-        if self.bridging is True:
-            assert self.bridging_metrics is not None
+        if self.bridging_metrics is not None:
             assert other.bridging_metrics is not None
             bridging_metrics = self.bridging_metrics + other.bridging_metrics
         else:
             bridging_metrics = None
-        if self.coreference is True:
-            assert self.coreference_metrics is not None
+        if self.coreference_metrics is not None:
             assert other.coreference_metrics is not None
             coreference_metric = self.coreference_metrics + other.coreference_metrics
         else:
