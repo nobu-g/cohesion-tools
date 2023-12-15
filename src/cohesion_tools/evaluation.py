@@ -20,6 +20,8 @@ from rhoknp.cohesion import (
     Predicate,
 )
 
+from cohesion_tools.task import Task
+
 logger = logging.getLogger(__name__)
 
 
@@ -32,21 +34,18 @@ class CohesionEvaluator:
     Args:
         exophora_referent_types: 評価の対象とする外界照応の照応先 (rhoknp.cohesion.ExophoraReferentTypeType を参照)
         pas_cases: 述語項構造の評価の対象とする格 (rhoknp.cohesion.rel.CASE_TYPES を参照)
-        bridging: 橋渡し照応の評価を行うかどうか (default: False)
-        coreference: 共参照の評価を行うかどうか (default: False)
+        tasks: 評価の対象とするタスク (cohesion_tools.task.Task を参照)
     """
 
     def __init__(
         self,
         exophora_referent_types: Collection[ExophoraReferentType],
         pas_cases: Collection[str],
-        bridging: bool = False,
-        coreference: bool = False,
+        tasks: Union[Collection[Task], Collection[str]],
     ) -> None:
         self.exophora_referent_types: List[ExophoraReferentType] = list(exophora_referent_types)
         self.pas_cases: List[str] = list(pas_cases)
-        self.bridging: bool = bridging
-        self.coreference: bool = coreference
+        self.tasks: List[Task] = list(map(Task, tasks))
         self.pas_evaluator = PASAnalysisEvaluator(exophora_referent_types, pas_cases)
         self.bridging_evaluator = BridgingReferenceResolutionEvaluator(exophora_referent_types, pas_cases)
         self.coreference_evaluator = CoreferenceResolutionEvaluator(exophora_referent_types)
@@ -78,10 +77,18 @@ class CohesionEvaluator:
         """Compute cohesion scores for a pair of gold document and predicted document"""
         assert len(predicted_document.base_phrases) == len(gold_document.base_phrases)
 
-        pas_metrics = self.pas_evaluator.run(predicted_document, gold_document)
-        bridging_metrics = self.bridging_evaluator.run(predicted_document, gold_document) if self.bridging else None
+        pas_metrics = (
+            self.pas_evaluator.run(predicted_document, gold_document) if Task.PAS_ANALYSIS in self.tasks else None
+        )
+        bridging_metrics = (
+            self.bridging_evaluator.run(predicted_document, gold_document)
+            if Task.BRIDGING_REFERENCE_RESOLUTION in self.tasks
+            else None
+        )
         coreference_metric = (
-            self.coreference_evaluator.run(predicted_document, gold_document) if self.coreference else None
+            self.coreference_evaluator.run(predicted_document, gold_document)
+            if Task.COREFERENCE_RESOLUTION in self.tasks
+            else None
         )
 
         return CohesionScore(pas_metrics, bridging_metrics, coreference_metric)

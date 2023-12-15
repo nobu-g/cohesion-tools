@@ -6,6 +6,7 @@ from rhoknp import Document
 from rhoknp.cohesion import ExophoraReferentType
 
 from cohesion_tools.evaluation import CohesionEvaluator
+from cohesion_tools.task import Task
 
 
 @pytest.fixture()
@@ -28,8 +29,7 @@ def scorer() -> CohesionEvaluator:
     return CohesionEvaluator(
         exophora_referent_types=list(map(ExophoraReferentType, ("著者", "読者", "不特定:人", "不特定:物"))),
         pas_cases=["ガ", "ヲ"],
-        bridging=True,
-        coreference=True,
+        tasks=[Task.PAS_ANALYSIS, Task.BRIDGING_REFERENCE_RESOLUTION, Task.COREFERENCE_RESOLUTION],
     )
 
 
