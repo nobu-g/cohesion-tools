@@ -30,12 +30,12 @@ from typing import List
 
 from rhoknp import Document
 from rhoknp.cohesion import ExophoraReferentType
-from cohesion_tools.evaluation import CohesionScorer, CohesionScore
+from cohesion_tools.evaluation import CohesionEvaluator, CohesionScore
 
 documents: List[Document] = [Document.from_knp(path.read_text()) for path in Path("your/dataset").glob("*.knp")]
 predicted_documents = your_model(documents)
 
-scorer = CohesionScorer(
+scorer = CohesionEvaluator(
     exophora_referent_types=[ExophoraReferentType(t) for t in ("著者", "読者", "不特定:人", "不特定:物")],
     pas_cases=["ガ", "ヲ", "ニ"],
 )

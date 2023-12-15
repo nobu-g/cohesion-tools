@@ -24,7 +24,7 @@ from cohesion_tools.extractors import BridgingExtractor, CoreferenceExtractor, P
 logger = logging.getLogger(__name__)
 
 
-class CohesionScorer:
+class CohesionEvaluator:
     """A class to evaluate system output.
 
     To evaluate system output with this class, you have to prepare gold data and system prediction data as instances of
@@ -189,9 +189,9 @@ class SubCohesionScorer:
     def _evaluate_pas(self) -> pd.DataFrame:
         """Compute predicate-argument structure analysis scores"""
         metrics = pd.DataFrame(
-            [[Metrics() for _ in CohesionScorer.ARGUMENT_TYPE2ANALYSIS.values()] for _ in self.pas_cases],
+            [[Metrics() for _ in CohesionEvaluator.ARGUMENT_TYPE2ANALYSIS.values()] for _ in self.pas_cases],
             index=self.pas_cases,
-            columns=list(CohesionScorer.ARGUMENT_TYPE2ANALYSIS.values()),
+            columns=list(CohesionEvaluator.ARGUMENT_TYPE2ANALYSIS.values()),
         )
         global_index2predicted_pas_predicate: Dict[int, Predicate] = {
             p.base_phrase.global_index: p for p in self.predicted_pas_predicates
@@ -238,12 +238,12 @@ class SubCohesionScorer:
                             relaxed_gold_pas_arguments.index(predicted_pas_argument)
                         ]
                         # use argument_type of gold argument if possible
-                        analysis = CohesionScorer.ARGUMENT_TYPE2ANALYSIS[relaxed_gold_pas_argument.type]
+                        analysis = CohesionEvaluator.ARGUMENT_TYPE2ANALYSIS[relaxed_gold_pas_argument.type]
                         self.comp_result[key] = analysis
                         metrics.loc[pas_case, analysis].tp += 1
                     else:
                         # system出力のargument_typeはgoldのものと違うので不整合が起きるかもしれない
-                        analysis = CohesionScorer.ARGUMENT_TYPE2ANALYSIS[predicted_pas_argument.type]
+                        analysis = CohesionEvaluator.ARGUMENT_TYPE2ANALYSIS[predicted_pas_argument.type]
                         self.comp_result[key] = "wrong"  # precision が下がる
                     metrics.loc[pas_case, analysis].tp_fp += 1
 
@@ -251,7 +251,7 @@ class SubCohesionScorer:
                 # 正解が複数ある場合、そのうち一つが当てられていればそれを正解に採用
                 if (
                     len(gold_pas_arguments) > 0
-                    or self.comp_result.get(key) in CohesionScorer.ARGUMENT_TYPE2ANALYSIS.values()
+                    or self.comp_result.get(key) in CohesionEvaluator.ARGUMENT_TYPE2ANALYSIS.values()
                 ):
                     recalled_pas_argument: Optional[Argument] = None
                     for relaxed_gold_pas_argument in relaxed_gold_pas_arguments:
@@ -259,11 +259,11 @@ class SubCohesionScorer:
                             recalled_pas_argument = relaxed_gold_pas_argument  # 予測されている項を優先して正解の項に採用
                             break
                     if recalled_pas_argument is not None:
-                        analysis = CohesionScorer.ARGUMENT_TYPE2ANALYSIS[recalled_pas_argument.type]
+                        analysis = CohesionEvaluator.ARGUMENT_TYPE2ANALYSIS[recalled_pas_argument.type]
                         assert self.comp_result[key] == analysis
                     else:
                         # いずれも当てられていなければ、relax されていない項から一つを選び正解に採用
-                        analysis = CohesionScorer.ARGUMENT_TYPE2ANALYSIS[gold_pas_arguments[0].type]
+                        analysis = CohesionEvaluator.ARGUMENT_TYPE2ANALYSIS[gold_pas_arguments[0].type]
                         if len(predicted_pas_arguments) > 0:
                             assert self.comp_result[key] == "wrong"
                         else:
@@ -347,32 +347,34 @@ class SubCohesionScorer:
                     relaxed_gold_antecedent = relaxed_gold_antecedents[
                         relaxed_gold_antecedents.index(predicted_antecedent)
                     ]
-                    analysis = CohesionScorer.ARGUMENT_TYPE2ANALYSIS[relaxed_gold_antecedent.type]
+                    analysis = CohesionEvaluator.ARGUMENT_TYPE2ANALYSIS[relaxed_gold_antecedent.type]
                     if analysis == "overt":
                         analysis = "dep"
                     self.comp_result[key] = analysis
                     metrics[analysis].tp += 1
                 else:
-                    analysis = CohesionScorer.ARGUMENT_TYPE2ANALYSIS[predicted_antecedent.type]
+                    analysis = CohesionEvaluator.ARGUMENT_TYPE2ANALYSIS[predicted_antecedent.type]
                     if analysis == "overt":
                         analysis = "dep"
                     self.comp_result[key] = "wrong"
                 metrics[analysis].tp_fp += 1
 
             # calculate recall
-            if gold_antecedents or (self.comp_result.get(key, None) in CohesionScorer.ARGUMENT_TYPE2ANALYSIS.values()):
+            if gold_antecedents or (
+                self.comp_result.get(key, None) in CohesionEvaluator.ARGUMENT_TYPE2ANALYSIS.values()
+            ):
                 recalled_antecedent: Optional[Argument] = None
                 for relaxed_gold_antecedent in relaxed_gold_antecedents:
                     if relaxed_gold_antecedent in predicted_antecedents:
                         recalled_antecedent = relaxed_gold_antecedent  # 予測されている先行詞を優先して正解の先行詞に採用
                         break
                 if recalled_antecedent is not None:
-                    analysis = CohesionScorer.ARGUMENT_TYPE2ANALYSIS[recalled_antecedent.type]
+                    analysis = CohesionEvaluator.ARGUMENT_TYPE2ANALYSIS[recalled_antecedent.type]
                     if analysis == "overt":
                         analysis = "dep"
                     assert self.comp_result[key] == analysis
                 else:
-                    analysis = CohesionScorer.ARGUMENT_TYPE2ANALYSIS[gold_antecedents[0].type]
+                    analysis = CohesionEvaluator.ARGUMENT_TYPE2ANALYSIS[gold_antecedents[0].type]
                     if analysis == "overt":
                         analysis = "dep"
                     if len(predicted_antecedents) > 0:

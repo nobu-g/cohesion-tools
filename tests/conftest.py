@@ -5,7 +5,7 @@ import pytest
 from rhoknp import Document
 from rhoknp.cohesion import ExophoraReferentType
 
-from cohesion_tools.evaluation import CohesionScorer
+from cohesion_tools.evaluation import CohesionEvaluator
 
 
 @pytest.fixture()
@@ -24,8 +24,8 @@ def gold_documents(data_dir: Path) -> List[Document]:
 
 
 @pytest.fixture()
-def scorer() -> CohesionScorer:
-    return CohesionScorer(
+def scorer() -> CohesionEvaluator:
+    return CohesionEvaluator(
         exophora_referent_types=list(map(ExophoraReferentType, ("著者", "読者", "不特定:人", "不特定:物"))),
         pas_cases=["ガ", "ヲ"],
         pas_verbal=True,

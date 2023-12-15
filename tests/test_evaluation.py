@@ -5,11 +5,11 @@ from typing import List
 
 from rhoknp import Document
 
-from cohesion_tools.evaluation import CohesionScorer, Metrics
+from cohesion_tools.evaluation import CohesionEvaluator, Metrics
 
 
 def test_to_dict(
-    data_dir: Path, predicted_documents: List[Document], gold_documents: List[Document], scorer: CohesionScorer
+    data_dir: Path, predicted_documents: List[Document], gold_documents: List[Document], scorer: CohesionEvaluator
 ) -> None:
     expected_scores = json.loads(data_dir.joinpath("expected/score/0.json").read_text())
     score = scorer.run(predicted_documents, gold_documents).to_dict()
@@ -23,7 +23,7 @@ def test_to_dict(
 
 
 def test_score_addition(
-    data_dir: Path, predicted_documents: List[Document], gold_documents: List[Document], scorer: CohesionScorer
+    data_dir: Path, predicted_documents: List[Document], gold_documents: List[Document], scorer: CohesionEvaluator
 ) -> None:
     expected_scores = json.loads(data_dir.joinpath("expected/score/0.json").read_text())
     score1 = scorer.run(predicted_documents, gold_documents)
@@ -32,7 +32,7 @@ def test_score_addition(
     score_dict = score.to_dict()
     for case in scorer.pas_cases:
         case_result = score_dict[case]
-        for analysis in CohesionScorer.ARGUMENT_TYPE2ANALYSIS.values():
+        for analysis in CohesionEvaluator.ARGUMENT_TYPE2ANALYSIS.values():
             expected: dict = expected_scores[case][analysis]
             actual: Metrics = case_result[analysis]
             assert actual.tp_fp == expected["denom_precision"] * 2
@@ -40,7 +40,7 @@ def test_score_addition(
             assert actual.tp == expected["tp"] * 2
 
 
-def test_identical_document(gold_documents: List[Document], scorer: CohesionScorer) -> None:
+def test_identical_document(gold_documents: List[Document], scorer: CohesionEvaluator) -> None:
     score = scorer.run(gold_documents, gold_documents)
     score_dict = score.to_dict()
     for value1 in score_dict.values():
@@ -49,7 +49,7 @@ def test_identical_document(gold_documents: List[Document], scorer: CohesionScor
 
 
 def test_export_txt(
-    data_dir: Path, predicted_documents: List[Document], gold_documents: List[Document], scorer: CohesionScorer
+    data_dir: Path, predicted_documents: List[Document], gold_documents: List[Document], scorer: CohesionEvaluator
 ) -> None:
     score = scorer.run(predicted_documents, gold_documents)
     with io.StringIO() as string:
@@ -60,7 +60,7 @@ def test_export_txt(
 
 
 def test_export_csv(
-    data_dir: Path, predicted_documents: List[Document], gold_documents: List[Document], scorer: CohesionScorer
+    data_dir: Path, predicted_documents: List[Document], gold_documents: List[Document], scorer: CohesionEvaluator
 ) -> None:
     score = scorer.run(predicted_documents, gold_documents)
     with io.StringIO() as string:
