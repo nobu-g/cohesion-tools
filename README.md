@@ -30,7 +30,7 @@ from typing import List
 
 from rhoknp import Document
 from rhoknp.cohesion import ExophoraReferentType
-from cohesion_tools.evaluation import CohesionEvaluator, CohesionScore
+from cohesion_tools.evaluators.cohesion import CohesionEvaluator, CohesionScore
 
 documents: List[Document] = [Document.from_knp(path.read_text()) for path in Path("your/dataset").glob("*.knp")]
 predicted_documents = your_model(documents)

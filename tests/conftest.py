@@ -5,7 +5,7 @@ import pytest
 from rhoknp import Document
 from rhoknp.cohesion import ExophoraReferentType
 
-from cohesion_tools.evaluation import CohesionEvaluator
+from cohesion_tools.evaluators.cohesion import CohesionEvaluator
 from cohesion_tools.task import Task
 
 

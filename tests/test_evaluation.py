@@ -5,7 +5,9 @@ from typing import List
 
 from rhoknp import Document
 
-from cohesion_tools.evaluation import CohesionEvaluator, Metrics, PASAnalysisEvaluator
+from cohesion_tools.evaluators.cohesion import CohesionEvaluator
+from cohesion_tools.evaluators.pas import PASAnalysisEvaluator
+from cohesion_tools.evaluators.utils import F1Metric
 
 
 def test_to_dict(
@@ -34,7 +36,7 @@ def test_score_addition(
         case_result = score_dict[case]
         for analysis in PASAnalysisEvaluator.ARGUMENT_TYPE_TO_ANALYSIS_TYPE.values():
             expected: dict = expected_scores[case][analysis]
-            actual: Metrics = case_result[analysis]
+            actual: F1Metric = case_result[analysis]
             assert actual.tp_fp == expected["denom_precision"] * 2
             assert actual.tp_fn == expected["denom_recall"] * 2
             assert actual.tp == expected["tp"] * 2
