@@ -17,6 +17,7 @@ class PASAnalysisEvaluator:
     Args:
         exophora_referent_types: 評価の対象とする外界照応の照応先 (rhoknp.cohesion.ExophoraReferentTypeType を参照)
         cases: 述語項構造の評価の対象とする格 (rhoknp.cohesion.rel.CASE_TYPES を参照)
+        is_target_predicate: 評価の対象とする述語を指定する関数．引数に述語を受け取り，対象とする述語であれば True を返却．
     """
 
     ARGUMENT_TYPE_TO_ANALYSIS_TYPE: ClassVar[Dict[ArgumentType, str]] = {
@@ -30,10 +31,11 @@ class PASAnalysisEvaluator:
         self,
         exophora_referent_types: Collection[ExophoraReferentType],
         cases: Collection[str],
+        is_target_predicate: Optional[Callable[[Predicate], bool]] = None,
     ) -> None:
         self.exophora_referent_types: List[ExophoraReferentType] = list(exophora_referent_types)
         self.cases: List[str] = list(cases)
-        self.predicate_filter: Callable[[Predicate], bool] = lambda _: True
+        self.is_target_predicate: Callable[[Predicate], bool] = is_target_predicate or (lambda _: True)
         self.comp_result: Dict[tuple, str] = {}
 
     def run(self, predicted_document: Document, gold_document: Document) -> pd.DataFrame:
@@ -50,7 +52,7 @@ class PASAnalysisEvaluator:
         assert len(predicted_predicates) == len(gold_predicates)
         for predicted_predicate, gold_predicate in zip(predicted_predicates, gold_predicates):
             for pas_case in self.cases:
-                if self.predicate_filter(predicted_predicate) is True:
+                if self.is_target_predicate(predicted_predicate) is True:
                     predicted_pas_arguments = self._filter_arguments(
                         predicted_predicate.pas.get_arguments(pas_case, relax=False),
                         predicted_predicate,
@@ -60,7 +62,7 @@ class PASAnalysisEvaluator:
                 # Assuming one argument for one predicate
                 assert len(predicted_pas_arguments) in (0, 1)
 
-                if self.predicate_filter(gold_predicate) is True:
+                if self.is_target_predicate(gold_predicate) is True:
                     gold_pas_arguments = self._filter_arguments(
                         gold_predicate.pas.get_arguments(pas_case, relax=False),
                         gold_predicate,

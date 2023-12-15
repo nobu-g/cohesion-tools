@@ -1,5 +1,5 @@
 import copy
-from typing import Callable, Collection, Dict, List, Set
+from typing import Callable, Collection, Dict, List, Optional, Set
 
 import pandas as pd
 from rhoknp import BasePhrase, Document
@@ -16,11 +16,16 @@ class CoreferenceResolutionEvaluator:
 
     Args:
         exophora_referent_types: 評価の対象とする外界照応の照応先 (rhoknp.cohesion.ExophoraReferentTypeType を参照)
+        is_target_mention: 評価の対象とする基本句を指定する関数．引数に基本句を受け取り，対象とする基本句であれば True を返却．
     """
 
-    def __init__(self, exophora_referent_types: Collection[ExophoraReferentType]) -> None:
+    def __init__(
+        self,
+        exophora_referent_types: Collection[ExophoraReferentType],
+        is_target_mention: Optional[Callable[[BasePhrase], bool]] = None,
+    ) -> None:
         self.exophora_referent_types: List[ExophoraReferentType] = list(exophora_referent_types)
-        self.mention_filter: Callable[[BasePhrase], bool] = lambda _: True
+        self.is_target_mention: Callable[[BasePhrase], bool] = is_target_mention or (lambda _: True)
         self.comp_result: Dict[tuple, str] = {}
 
     def run(self, predicted_document: Document, gold_document: Document) -> pd.Series:
@@ -29,7 +34,7 @@ class CoreferenceResolutionEvaluator:
         metrics: Dict[str, F1Metric] = {anal: F1Metric() for anal in ("endophora", "exophora")}
         local_comp_result: Dict[tuple, str] = {}
         for predicted_mention, gold_mention in zip(predicted_document.base_phrases, gold_document.base_phrases):
-            if self.mention_filter(predicted_mention) is True:
+            if self.is_target_mention(predicted_mention) is True:
                 predicted_other_mentions = self._filter_mentions(predicted_mention.get_coreferents(), predicted_mention)
                 predicted_exophora_referents = self._filter_exophora_referents(
                     [e.exophora_referent for e in predicted_mention.entities if e.exophora_referent is not None],
@@ -38,7 +43,7 @@ class CoreferenceResolutionEvaluator:
                 predicted_other_mentions = []
                 predicted_exophora_referents = set()
 
-            if self.mention_filter(gold_mention) is True:
+            if self.is_target_mention(gold_mention) is True:
                 gold_other_mentions = self._filter_mentions(
                     gold_mention.get_coreferents(include_nonidentical=False),
                     gold_mention,

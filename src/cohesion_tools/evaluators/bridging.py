@@ -16,6 +16,8 @@ class BridgingReferenceResolutionEvaluator:
 
     Args:
         exophora_referent_types: 評価の対象とする外界照応の照応先 (rhoknp.cohesion.ExophoraReferentTypeType を参照)
+        rel_types: 橋渡し参照解析の評価の対象とする関係 (rhoknp.cohesion.rel.CASE_TYPES を参照)
+        is_target_anaphor: 評価の対象とする照応詞を指定する関数．引数に照応詞を受け取り，対象とする照応詞であれば True を返却．
     """
 
     ARGUMENT_TYPE_TO_ANALYSIS_TYPE: ClassVar[Dict[ArgumentType, str]] = {
@@ -29,10 +31,11 @@ class BridgingReferenceResolutionEvaluator:
         self,
         exophora_referent_types: Collection[ExophoraReferentType],
         rel_types: Collection[str],
+        is_target_anaphor: Optional[Callable[[Predicate], bool]] = None,
     ) -> None:
         self.exophora_referent_types: List[ExophoraReferentType] = list(exophora_referent_types)
         self.rel_types: List[str] = list(rel_types)
-        self.anaphor_filter: Callable[[Predicate], bool] = lambda _: True
+        self.is_target_anaphor: Callable[[Predicate], bool] = is_target_anaphor or (lambda _: True)
         self.comp_result: Dict[tuple, str] = {}
 
     def run(self, predicted_document: Document, gold_document: Document) -> pd.Series:
@@ -45,7 +48,7 @@ class BridgingReferenceResolutionEvaluator:
         assert len(predicted_anaphors) == len(gold_anaphors)
         for predicted_anaphor, gold_anaphor in zip(predicted_anaphors, gold_anaphors):
             for rel_type in self.rel_types:
-                if self.anaphor_filter(predicted_anaphor) is True:
+                if self.is_target_anaphor(predicted_anaphor) is True:
                     predicted_antecedents: List[Argument] = self._filter_referents(
                         predicted_anaphor.pas.get_arguments(rel_type, relax=False),
                         predicted_anaphor,
@@ -55,7 +58,7 @@ class BridgingReferenceResolutionEvaluator:
                 # Assuming one antecedent for one anaphor
                 assert len(predicted_antecedents) in (0, 1)
 
-                if self.anaphor_filter(gold_anaphor) is True:
+                if self.is_target_anaphor(gold_anaphor) is True:
                     gold_antecedents: List[Argument] = self._filter_referents(
                         gold_anaphor.pas.get_arguments(rel_type, relax=False),
                         gold_anaphor,
