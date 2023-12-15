@@ -44,69 +44,75 @@ class BridgingReferenceResolutionEvaluator:
 
         assert len(predicted_anaphors) == len(gold_anaphors)
         for predicted_anaphor, gold_anaphor in zip(predicted_anaphors, gold_anaphors):
-            if self.anaphor_filter(predicted_anaphor) is True:
-                predicted_antecedents: List[Argument] = self._filter_referents(
-                    predicted_anaphor.pas.get_arguments("ノ", relax=False),
-                    predicted_anaphor,
-                )
-            else:
-                predicted_antecedents = []
-            # Assuming one antecedent for one anaphor
-            assert len(predicted_antecedents) in (0, 1)
-
-            if self.anaphor_filter(gold_anaphor) is True:
-                gold_antecedents: List[Argument] = self._filter_referents(
-                    gold_anaphor.pas.get_arguments("ノ", relax=False),
-                    gold_anaphor,
-                )
-                relaxed_gold_antecedents: List[Argument] = gold_anaphor.pas.get_arguments(
-                    "ノ",
-                    relax=True,
-                    include_nonidentical=True,
-                )
-                relaxed_gold_antecedents += gold_anaphor.pas.get_arguments("ノ？", relax=True, include_nonidentical=True)
-                relaxed_gold_antecedents = self._filter_referents(relaxed_gold_antecedents, gold_anaphor)
-            else:
-                gold_antecedents = relaxed_gold_antecedents = []
-
-            key = (predicted_anaphor.base_phrase.global_index, "ノ")
-
-            # Compute precision
-            if len(predicted_antecedents) > 0:
-                predicted_antecedent = predicted_antecedents[0]
-                if predicted_antecedent in relaxed_gold_antecedents:
-                    relaxed_gold_antecedent = relaxed_gold_antecedents[
-                        relaxed_gold_antecedents.index(predicted_antecedent)
-                    ]
-                    analysis = self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE[relaxed_gold_antecedent.type]
-                    local_comp_result[key] = analysis
-                    metrics[analysis].tp += 1
+            for rel_type in self.rel_types:
+                if self.anaphor_filter(predicted_anaphor) is True:
+                    predicted_antecedents: List[Argument] = self._filter_referents(
+                        predicted_anaphor.pas.get_arguments(rel_type, relax=False),
+                        predicted_anaphor,
+                    )
                 else:
-                    analysis = self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE[predicted_antecedent.type]
-                    local_comp_result[key] = "wrong"
-                metrics[analysis].tp_fp += 1
+                    predicted_antecedents = []
+                # Assuming one antecedent for one anaphor
+                assert len(predicted_antecedents) in (0, 1)
 
-            # Compute recall
-            if gold_antecedents or (local_comp_result.get(key, None) in self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE.values()):
-                recalled_antecedent: Optional[Argument] = None
-                for relaxed_gold_antecedent in relaxed_gold_antecedents:
-                    if relaxed_gold_antecedent in predicted_antecedents:
-                        recalled_antecedent = relaxed_gold_antecedent  # 予測されている先行詞を優先して正解の先行詞に採用
-                        break
-                if recalled_antecedent is not None:
-                    analysis = self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE[recalled_antecedent.type]
-                    if analysis == "overt":
-                        analysis = "dep"
-                    assert local_comp_result[key] == analysis
+                if self.anaphor_filter(gold_anaphor) is True:
+                    gold_antecedents: List[Argument] = self._filter_referents(
+                        gold_anaphor.pas.get_arguments(rel_type, relax=False),
+                        gold_anaphor,
+                    )
+                    relaxed_gold_antecedents: List[Argument] = gold_anaphor.pas.get_arguments(
+                        rel_type,
+                        relax=True,
+                        include_nonidentical=True,
+                    )
+                    if rel_type == "ノ":
+                        relaxed_gold_antecedents += gold_anaphor.pas.get_arguments(
+                            "ノ？", relax=True, include_nonidentical=True
+                        )
+                    relaxed_gold_antecedents = self._filter_referents(relaxed_gold_antecedents, gold_anaphor)
                 else:
-                    analysis = self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE[gold_antecedents[0].type]
-                    if analysis == "overt":
-                        analysis = "dep"
-                    if len(predicted_antecedents) > 0:
-                        assert local_comp_result[key] == "wrong"
+                    gold_antecedents = relaxed_gold_antecedents = []
+
+                key = (predicted_anaphor.base_phrase.global_index, rel_type)
+
+                # Compute precision
+                if len(predicted_antecedents) > 0:
+                    predicted_antecedent = predicted_antecedents[0]
+                    if predicted_antecedent in relaxed_gold_antecedents:
+                        relaxed_gold_antecedent = relaxed_gold_antecedents[
+                            relaxed_gold_antecedents.index(predicted_antecedent)
+                        ]
+                        analysis = self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE[relaxed_gold_antecedent.type]
+                        local_comp_result[key] = analysis
+                        metrics[analysis].tp += 1
                     else:
+                        analysis = self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE[predicted_antecedent.type]
                         local_comp_result[key] = "wrong"
-                metrics[analysis].tp_fn += 1
+                    metrics[analysis].tp_fp += 1
+
+                # Compute recall
+                if gold_antecedents or (
+                    local_comp_result.get(key, None) in self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE.values()
+                ):
+                    recalled_antecedent: Optional[Argument] = None
+                    for relaxed_gold_antecedent in relaxed_gold_antecedents:
+                        if relaxed_gold_antecedent in predicted_antecedents:
+                            recalled_antecedent = relaxed_gold_antecedent  # 予測されている先行詞を優先して正解の先行詞に採用
+                            break
+                    if recalled_antecedent is not None:
+                        analysis = self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE[recalled_antecedent.type]
+                        if analysis == "overt":
+                            analysis = "dep"
+                        assert local_comp_result[key] == analysis
+                    else:
+                        analysis = self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE[gold_antecedents[0].type]
+                        if analysis == "overt":
+                            analysis = "dep"
+                        if len(predicted_antecedents) > 0:
+                            assert local_comp_result[key] == "wrong"
+                        else:
+                            local_comp_result[key] = "wrong"
+                    metrics[analysis].tp_fn += 1
         self.comp_result.update({(gold_document.doc_id, *k): v for k, v in local_comp_result.items()})
         return pd.Series(metrics)
 

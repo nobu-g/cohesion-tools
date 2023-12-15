@@ -43,7 +43,7 @@ class CohesionEvaluator:
         self.pas_cases: List[str] = list(pas_cases)
         self.tasks: List[Task] = list(map(Task, tasks))
         self.pas_evaluator = PASAnalysisEvaluator(exophora_referent_types, pas_cases)
-        self.bridging_evaluator = BridgingReferenceResolutionEvaluator(exophora_referent_types, pas_cases)
+        self.bridging_evaluator = BridgingReferenceResolutionEvaluator(exophora_referent_types, ["ノ"])
         self.coreference_evaluator = CoreferenceResolutionEvaluator(exophora_referent_types)
 
     def run(self, predicted_documents: Sequence[Document], gold_documents: Sequence[Document]) -> "CohesionScore":
