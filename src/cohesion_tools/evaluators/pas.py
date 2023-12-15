@@ -51,16 +51,20 @@ class PASAnalysisEvaluator:
         for predicted_predicate, gold_predicate in zip(predicted_predicates, gold_predicates):
             for pas_case in self.cases:
                 if self.predicate_filter(predicted_predicate) is True:
-                    predicted_pas_arguments = predicted_predicate.pas.get_arguments(pas_case, relax=False)
-                    predicted_pas_arguments = self._filter_arguments(predicted_pas_arguments, predicted_predicate)
+                    predicted_pas_arguments = self._filter_arguments(
+                        predicted_predicate.pas.get_arguments(pas_case, relax=False),
+                        predicted_predicate,
+                    )
                 else:
                     predicted_pas_arguments = []
                 # Assuming one argument for one predicate
                 assert len(predicted_pas_arguments) in (0, 1)
 
                 if self.predicate_filter(gold_predicate) is True:
-                    gold_pas_arguments = gold_predicate.pas.get_arguments(pas_case, relax=False)
-                    gold_pas_arguments = self._filter_arguments(gold_pas_arguments, gold_predicate)
+                    gold_pas_arguments = self._filter_arguments(
+                        gold_predicate.pas.get_arguments(pas_case, relax=False),
+                        gold_predicate,
+                    )
                     relaxed_gold_pas_arguments = gold_predicate.pas.get_arguments(
                         pas_case,
                         relax=True,
