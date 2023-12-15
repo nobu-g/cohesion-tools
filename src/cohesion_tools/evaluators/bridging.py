@@ -37,9 +37,10 @@ class BridgingReferenceResolutionEvaluator:
 
     def run(self, predicted_document: Document, gold_document: Document) -> pd.Series:
         """Compute bridging reference resolution scores"""
+        metrics: Dict[str, F1Metric] = {anal: F1Metric() for anal in ("dep", "zero_endophora", "exophora")}
         predicted_anaphors = [base_phrase.pas.predicate for base_phrase in predicted_document.base_phrases]
         gold_anaphors = [base_phrase.pas.predicate for base_phrase in gold_document.base_phrases]
-        metrics: Dict[str, F1Metric] = {anal: F1Metric() for anal in ("dep", "zero_endophora", "exophora")}
+        local_comp_result: Dict[tuple, str] = {}
 
         assert len(predicted_anaphors) == len(gold_anaphors)
         for predicted_anaphor, gold_anaphor in zip(predicted_anaphors, gold_anaphors):
@@ -78,15 +79,15 @@ class BridgingReferenceResolutionEvaluator:
                         relaxed_gold_antecedents.index(predicted_antecedent)
                     ]
                     analysis = self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE[relaxed_gold_antecedent.type]
-                    self.comp_result[key] = analysis
+                    local_comp_result[key] = analysis
                     metrics[analysis].tp += 1
                 else:
                     analysis = self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE[predicted_antecedent.type]
-                    self.comp_result[key] = "wrong"
+                    local_comp_result[key] = "wrong"
                 metrics[analysis].tp_fp += 1
 
             # Compute recall
-            if gold_antecedents or (self.comp_result.get(key, None) in self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE.values()):
+            if gold_antecedents or (local_comp_result.get(key, None) in self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE.values()):
                 recalled_antecedent: Optional[Argument] = None
                 for relaxed_gold_antecedent in relaxed_gold_antecedents:
                     if relaxed_gold_antecedent in predicted_antecedents:
@@ -96,16 +97,17 @@ class BridgingReferenceResolutionEvaluator:
                     analysis = self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE[recalled_antecedent.type]
                     if analysis == "overt":
                         analysis = "dep"
-                    assert self.comp_result[key] == analysis
+                    assert local_comp_result[key] == analysis
                 else:
                     analysis = self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE[gold_antecedents[0].type]
                     if analysis == "overt":
                         analysis = "dep"
                     if len(predicted_antecedents) > 0:
-                        assert self.comp_result[key] == "wrong"
+                        assert local_comp_result[key] == "wrong"
                     else:
-                        self.comp_result[key] = "wrong"
+                        local_comp_result[key] = "wrong"
                 metrics[analysis].tp_fn += 1
+        self.comp_result.update({(gold_document.doc_id, *k): v for k, v in local_comp_result.items()})
         return pd.Series(metrics)
 
     def _filter_referents(self, referents: List[Argument], anaphor: Predicate) -> List[Argument]:

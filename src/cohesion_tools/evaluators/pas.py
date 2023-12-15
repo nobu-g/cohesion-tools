@@ -38,13 +38,14 @@ class PASAnalysisEvaluator:
 
     def run(self, predicted_document: Document, gold_document: Document) -> pd.DataFrame:
         """Compute predicate-argument structure analysis scores"""
-        predicted_predicates = [base_phrase.pas.predicate for base_phrase in predicted_document.base_phrases]
-        gold_predicates = [base_phrase.pas.predicate for base_phrase in gold_document.base_phrases]
         metrics = pd.DataFrame(
             [[F1Metric() for _ in self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE.values()] for _ in self.cases],
             index=self.cases,
             columns=list(self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE.values()),
         )
+        predicted_predicates = [base_phrase.pas.predicate for base_phrase in predicted_document.base_phrases]
+        gold_predicates = [base_phrase.pas.predicate for base_phrase in gold_document.base_phrases]
+        local_comp_result: Dict[tuple, str] = {}
 
         assert len(predicted_predicates) == len(gold_predicates)
         for predicted_predicate, gold_predicate in zip(predicted_predicates, gold_predicates):
@@ -86,18 +87,18 @@ class PASAnalysisEvaluator:
                         ]
                         # Use argument_type of gold argument if possible
                         analysis = self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE[relaxed_gold_pas_argument.type]
-                        self.comp_result[key] = analysis
+                        local_comp_result[key] = analysis
                         metrics.loc[pas_case, analysis].tp += 1
                     else:
                         analysis = self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE[predicted_pas_argument.type]
-                        self.comp_result[key] = "wrong"  # precision が下がる
+                        local_comp_result[key] = "wrong"  # precision が下がる
                     metrics.loc[pas_case, analysis].tp_fp += 1
 
                 # Compute recall
                 # 正解が複数ある場合、そのうち一つが当てられていればそれを正解に採用
                 if (
                     len(gold_pas_arguments) > 0
-                    or self.comp_result.get(key) in self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE.values()
+                    or local_comp_result.get(key) in self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE.values()
                 ):
                     recalled_pas_argument: Optional[Argument] = None
                     for relaxed_gold_pas_argument in relaxed_gold_pas_arguments:
@@ -106,15 +107,16 @@ class PASAnalysisEvaluator:
                             break
                     if recalled_pas_argument is not None:
                         analysis = self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE[recalled_pas_argument.type]
-                        assert self.comp_result[key] == analysis
+                        assert local_comp_result[key] == analysis
                     else:
                         # いずれも当てられていなければ、relax されていない項から一つを選び正解に採用
                         analysis = self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE[gold_pas_arguments[0].type]
                         if len(predicted_pas_arguments) > 0:
-                            assert self.comp_result[key] == "wrong"
+                            assert local_comp_result[key] == "wrong"
                         else:
-                            self.comp_result[key] = "wrong"  # recall が下がる
+                            local_comp_result[key] = "wrong"  # recall が下がる
                     metrics.loc[pas_case, analysis].tp_fn += 1
+        self.comp_result.update({(gold_document.doc_id, *k): v for k, v in local_comp_result.items()})
         return metrics
 
     def _filter_arguments(self, arguments: List[Argument], predicate: Predicate) -> List[Argument]:

@@ -27,6 +27,7 @@ class CoreferenceResolutionEvaluator:
         """Compute coreference resolution scores"""
         assert len(predicted_document.base_phrases) == len(gold_document.base_phrases)
         metrics: Dict[str, F1Metric] = {anal: F1Metric() for anal in ("endophora", "exophora")}
+        local_comp_result: Dict[tuple, str] = {}
         for predicted_mention, gold_mention in zip(predicted_document.base_phrases, gold_document.base_phrases):
             if self.mention_filter(predicted_mention) is True:
                 predicted_other_mentions = self._filter_mentions(predicted_mention.get_coreferents(), predicted_mention)
@@ -62,29 +63,34 @@ class CoreferenceResolutionEvaluator:
             if predicted_other_mentions or predicted_exophora_referents:
                 if any(mention in relaxed_gold_other_mentions for mention in predicted_other_mentions):
                     analysis = "endophora"
-                    self.comp_result[key] = analysis
+                    local_comp_result[key] = analysis
                     metrics[analysis].tp += 1
                 elif predicted_exophora_referents & relaxed_gold_exophora_referents:
                     analysis = "exophora"
-                    self.comp_result[key] = analysis
+                    local_comp_result[key] = analysis
                     metrics[analysis].tp += 1
                 else:
                     analysis = "endophora" if predicted_other_mentions else "exophora"
-                    self.comp_result[key] = "wrong"
+                    local_comp_result[key] = "wrong"
                 metrics[analysis].tp_fp += 1
 
             # Compute recall
-            if gold_other_mentions or gold_exophora_referents or self.comp_result.get(key) in ("endophora", "exophora"):
+            if (
+                gold_other_mentions
+                or gold_exophora_referents
+                or local_comp_result.get(key) in ("endophora", "exophora")
+            ):
                 if any(mention in relaxed_gold_other_mentions for mention in predicted_other_mentions):
                     analysis = "endophora"
-                    assert self.comp_result[key] == analysis
+                    assert local_comp_result[key] == analysis
                 elif predicted_exophora_referents & relaxed_gold_exophora_referents:
                     analysis = "exophora"
-                    assert self.comp_result[key] == analysis
+                    assert local_comp_result[key] == analysis
                 else:
                     analysis = "endophora" if gold_other_mentions else "exophora"
-                    self.comp_result[key] = "wrong"
+                    local_comp_result[key] = "wrong"
                 metrics[analysis].tp_fn += 1
+        self.comp_result.update({(gold_document.doc_id, *k): v for k, v in local_comp_result.items()})
         return pd.Series(metrics)
 
     @staticmethod
