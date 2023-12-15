@@ -28,6 +28,7 @@ class CohesionEvaluator:
         tasks: 評価の対象とするタスク (cohesion_tools.task.Task を参照)
         exophora_referent_types: 評価の対象とする外界照応の照応先 (rhoknp.cohesion.ExophoraReferentTypeType を参照)
         pas_cases: 述語項構造の評価の対象とする格 (rhoknp.cohesion.rel.CASE_TYPES を参照)
+        bridging_rel_types: 橋渡し参照解析の評価の対象とする関係 (rhoknp.cohesion.rel.CASE_TYPES を参照．default: ["ノ"])
     """
 
     def __init__(
@@ -35,12 +36,16 @@ class CohesionEvaluator:
         tasks: Union[Collection[Task], Collection[str]],
         exophora_referent_types: Collection[ExophoraReferentType],
         pas_cases: Collection[str],
+        bridging_rel_types: Optional[Collection[str]] = None,
     ) -> None:
         self.exophora_referent_types: List[ExophoraReferentType] = list(exophora_referent_types)
         self.pas_cases: List[str] = list(pas_cases)
         self.tasks: List[Task] = list(map(Task, tasks))
         self.pas_evaluator = PASAnalysisEvaluator(exophora_referent_types, pas_cases)
-        self.bridging_evaluator = BridgingReferenceResolutionEvaluator(exophora_referent_types, ["ノ"])
+        self.bridging_evaluator = BridgingReferenceResolutionEvaluator(
+            exophora_referent_types,
+            bridging_rel_types if bridging_rel_types is not None else ["ノ"],
+        )
         self.coreference_evaluator = CoreferenceResolutionEvaluator(exophora_referent_types)
 
     def run(self, predicted_documents: Sequence[Document], gold_documents: Sequence[Document]) -> "CohesionScore":
@@ -92,12 +97,12 @@ class CohesionScore:
     """A data class for storing the numerical result of an evaluation"""
 
     pas_metrics: Optional[pd.DataFrame]
-    bridging_metrics: Optional[pd.Series]
+    bridging_metrics: Optional[pd.DataFrame]
     coreference_metrics: Optional[pd.Series]
 
     def to_dict(self) -> Dict[str, Dict[str, F1Metric]]:
         """Convert data to dictionary"""
-        df_all = pd.DataFrame(index=["all_case"])
+        df_all = pd.DataFrame(index=["pas"])
         if self.pas is True:
             assert self.pas_metrics is not None
             df_pas: pd.DataFrame = self.pas_metrics.copy()
@@ -106,17 +111,20 @@ class CohesionScore:
             df_pas["zero"] = df_pas["zero_endophora"] + df_pas["exophora"]
             df_pas["dep_zero"] = df_pas["dep"] + df_pas["zero"]
             df_pas["all"] = df_pas["overt"] + df_pas["dep_zero"]
+            df_pas = df_pas.rename(index=lambda x: f"pas_{x}")
             df_all = pd.concat([df_pas, df_all])
-            df_all.loc["all_case"] = df_pas.sum(axis=0)
+            df_all.loc["pas"] = df_pas.sum(axis=0)
 
         if self.bridging is True:
             assert self.bridging_metrics is not None
-            df_bar = self.bridging_metrics.copy()
-            df_bar["endophora"] = df_bar["dep"] + df_bar["zero_endophora"]
-            df_bar["zero"] = df_bar["zero_endophora"] + df_bar["exophora"]
-            df_bar["dep_zero"] = df_bar["dep"] + df_bar["zero"]
-            df_bar["all"] = df_bar["dep_zero"]
-            df_all.loc["bridging"] = df_bar
+            df_bridging: pd.DataFrame = self.bridging_metrics.copy()
+            df_bridging["endophora"] = df_bridging["dep"] + df_bridging["zero_endophora"]
+            df_bridging["zero"] = df_bridging["zero_endophora"] + df_bridging["exophora"]
+            df_bridging["dep_zero"] = df_bridging["dep"] + df_bridging["zero"]
+            df_bridging["all"] = df_bridging["dep_zero"]
+            df_bridging = df_bridging.rename(index=lambda x: f"bridging_{x}")
+            df_all = pd.concat([df_all, df_bridging])
+            df_all.loc["bridging"] = df_bridging.sum(axis=0)
 
         if self.coreference is True:
             assert self.coreference_metrics is not None
@@ -135,10 +143,10 @@ class CohesionScore:
             destination (Union[str, Path, TextIO]): 書き出す先
         """
         lines = []
-        for rel, analysis2metric in self.to_dict().items():
-            lines.append(f"{rel}格" if (self.pas_metrics is not None) and (rel in self.pas_metrics.index) else rel)
-            for analysis, metric in analysis2metric.items():
-                lines.append(f"  {analysis}")
+        for rel_type, analysis_type_to_metric in self.to_dict().items():
+            lines.append(rel_type)
+            for analysis_type, metric in analysis_type_to_metric.items():
+                lines.append(f"  {analysis_type}")
                 lines.append(f"    precision: {metric.precision:.4f} ({metric.tp}/{metric.tp_fp})")
                 lines.append(f"    recall   : {metric.recall:.4f} ({metric.tp}/{metric.tp_fn})")
                 lines.append(f"    F        : {metric.f1:.4f}")
@@ -158,7 +166,7 @@ class CohesionScore:
         """
         result_dict = self.to_dict()
         text = "task" + sep
-        columns: List[str] = list(result_dict["all_case"].keys())
+        columns: List[str] = list(result_dict["pas"].keys())
         text += sep.join(columns) + "\n"
         for task, measures in result_dict.items():
             text += task + sep

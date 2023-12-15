@@ -1,5 +1,5 @@
 {
-  "ガ": {
+  "pas_ガ": {
     "overt": {
       "denom_precision": 0,
       "denom_recall": 0,
@@ -46,7 +46,7 @@
       "tp": 2
     }
   },
-  "ヲ": {
+  "pas_ヲ": {
     "overt": {
       "denom_precision": 0,
       "denom_recall": 1,
@@ -93,7 +93,7 @@
       "tp": 1
     }
   },
-  "all_case": {
+  "pas": {
     "overt": {
       "denom_precision": 0,
       "denom_recall": 1,

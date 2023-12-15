@@ -27,9 +27,10 @@ def gold_documents(data_dir: Path) -> List[Document]:
 @pytest.fixture()
 def scorer() -> CohesionEvaluator:
     return CohesionEvaluator(
+        tasks=[Task.PAS_ANALYSIS, Task.BRIDGING_REFERENCE_RESOLUTION, Task.COREFERENCE_RESOLUTION],
         exophora_referent_types=list(map(ExophoraReferentType, ("著者", "読者", "不特定:人", "不特定:物"))),
         pas_cases=["ガ", "ヲ"],
-        tasks=[Task.PAS_ANALYSIS, Task.BRIDGING_REFERENCE_RESOLUTION, Task.COREFERENCE_RESOLUTION],
+        bridging_rel_types=["ノ"],
     )
 
 

@@ -15,7 +15,7 @@ def test_to_dict(
 ) -> None:
     expected_scores = json.loads(data_dir.joinpath("expected/score/0.json").read_text())
     score = scorer.run(predicted_documents, gold_documents).to_dict()
-    for task in [*scorer.pas_cases, "bridging", "coreference"]:
+    for task in [*[f"pas_{c}" for c in scorer.pas_cases], "bridging", "coreference"]:
         task_result = score[task]
         for anal, actual in task_result.items():
             expected: dict = expected_scores[task][anal]
@@ -32,7 +32,7 @@ def test_score_addition(
     score2 = scorer.run(predicted_documents, gold_documents)
     score = score1 + score2
     score_dict = score.to_dict()
-    for case in scorer.pas_cases:
+    for case in [f"pas_{c}" for c in scorer.pas_cases]:
         case_result = score_dict[case]
         for analysis in PASAnalysisEvaluator.ARGUMENT_TYPE_TO_ANALYSIS_TYPE.values():
             expected: dict = expected_scores[case][analysis]

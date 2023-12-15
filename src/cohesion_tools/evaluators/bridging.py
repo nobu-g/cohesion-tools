@@ -38,9 +38,13 @@ class BridgingReferenceResolutionEvaluator:
         self.is_target_anaphor: Callable[[Predicate], bool] = is_target_anaphor or (lambda _: True)
         self.comp_result: Dict[tuple, str] = {}
 
-    def run(self, predicted_document: Document, gold_document: Document) -> pd.Series:
+    def run(self, predicted_document: Document, gold_document: Document) -> pd.DataFrame:
         """Compute bridging reference resolution scores"""
-        metrics: Dict[str, F1Metric] = {anal: F1Metric() for anal in ("dep", "zero_endophora", "exophora")}
+        metrics = pd.DataFrame(
+            [[F1Metric() for _ in ("dep", "zero_endophora", "exophora")] for _ in self.rel_types],
+            index=self.rel_types,
+            columns=["dep", "zero_endophora", "exophora"],
+        )
         predicted_anaphors = [base_phrase.pas.predicate for base_phrase in predicted_document.base_phrases]
         gold_anaphors = [base_phrase.pas.predicate for base_phrase in gold_document.base_phrases]
         local_comp_result: Dict[tuple, str] = {}
@@ -87,11 +91,11 @@ class BridgingReferenceResolutionEvaluator:
                         ]
                         analysis = self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE[relaxed_gold_antecedent.type]
                         local_comp_result[key] = analysis
-                        metrics[analysis].tp += 1
+                        metrics.loc[rel_type, analysis].tp += 1
                     else:
                         analysis = self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE[predicted_antecedent.type]
                         local_comp_result[key] = "wrong"
-                    metrics[analysis].tp_fp += 1
+                    metrics.loc[rel_type, analysis].tp_fp += 1
 
                 # Compute recall
                 if gold_antecedents or (
@@ -115,9 +119,9 @@ class BridgingReferenceResolutionEvaluator:
                             assert local_comp_result[key] == "wrong"
                         else:
                             local_comp_result[key] = "wrong"
-                    metrics[analysis].tp_fn += 1
+                    metrics.loc[rel_type, analysis].tp_fn += 1
         self.comp_result.update({(gold_document.doc_id, *k): v for k, v in local_comp_result.items()})
-        return pd.Series(metrics)
+        return metrics
 
     def _filter_referents(self, referents: List[Argument], anaphor: Predicate) -> List[Argument]:
         filtered = []
