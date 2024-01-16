@@ -13,9 +13,8 @@ authors = ["nobu-g <ueda-n127@hotmail.co.jp>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-# TODO: rhoknp 1.6.1 がリリースされ次第 >= 3.8 に変更
-python = "^3.8"  # specifying ">=3.8,<3.13" won't let dependents specify like "^3.9"
-rhoknp = ">=1.5.1,<1.7"
+python = ">=3.8"
+rhoknp = ">=1.5.1"
 pandas = [
     { version = "~2.0.3", python = "3.8", optional = true },
     { version = "^2.0", python = ">=3.9", optional = true },
