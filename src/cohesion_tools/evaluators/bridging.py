@@ -104,7 +104,9 @@ class BridgingReferenceResolutionEvaluator:
                     recalled_antecedent: Optional[Argument] = None
                     for relaxed_gold_antecedent in relaxed_gold_antecedents:
                         if relaxed_gold_antecedent in predicted_antecedents:
-                            recalled_antecedent = relaxed_gold_antecedent  # 予測されている先行詞を優先して正解の先行詞に採用
+                            recalled_antecedent = (
+                                relaxed_gold_antecedent  # 予測されている先行詞を優先して正解の先行詞に採用
+                            )
                             break
                     if recalled_antecedent is not None:
                         analysis = self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE[recalled_antecedent.type]

@@ -86,7 +86,20 @@ class PasExtractor(BaseExtractor):
             if coreferent_has_pas_annotation is True:
                 assert coreferring_base_phrase is not None
                 for rel_to_copy in coreferring_base_phrase.rel_tags:
-                    if rel_to_copy.type in ("ガ", "ヲ", "ニ", "ガ２", "デ", "ト", "カラ", "ヨリ", "マデ", "ヘ", "時間", "外の関係"):
+                    if rel_to_copy.type in (
+                        "ガ",
+                        "ヲ",
+                        "ニ",
+                        "ガ２",
+                        "デ",
+                        "ト",
+                        "カラ",
+                        "ヨリ",
+                        "マデ",
+                        "ヘ",
+                        "時間",
+                        "外の関係",
+                    ):
                         target_phrase.rel_tags.append(rel_to_copy)
 
         return document.reparse()
