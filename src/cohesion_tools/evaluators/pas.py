@@ -109,7 +109,9 @@ class PASAnalysisEvaluator:
                     recalled_pas_argument: Optional[Argument] = None
                     for relaxed_gold_pas_argument in relaxed_gold_pas_arguments:
                         if relaxed_gold_pas_argument in predicted_pas_arguments:
-                            recalled_pas_argument = relaxed_gold_pas_argument  # 予測されている項を優先して正解の項に採用
+                            recalled_pas_argument = (
+                                relaxed_gold_pas_argument  # 予測されている項を優先して正解の項に採用
+                            )
                             break
                     if recalled_pas_argument is not None:
                         analysis = self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE[recalled_pas_argument.type]

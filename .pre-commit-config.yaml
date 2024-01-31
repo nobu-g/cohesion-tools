@@ -11,7 +11,7 @@ repos:
       - id: check-toml
       - id: check-added-large-files
   - repo: https://github.com/psf/black-pre-commit-mirror
-    rev: 23.12.1
+    rev: 24.1.1
     hooks:
       - id: black
   - repo: https://github.com/pre-commit/mirrors-mypy
@@ -23,7 +23,7 @@ repos:
           - pandas
         language_version: python3.9
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.1.13
+    rev: v0.1.14
     hooks:
       - id: ruff
         args: [ --fix, --exit-non-zero-on-fix ]
