@@ -42,8 +42,11 @@ python_version = 3.8
 [tool.ruff]
 line-length = 120
 indent-width = 4
-target-version = "py38"  # The minimum Python version to target
 src = ["src"]
+target-version = "py38"  # The minimum Python version to target
+
+[tool.ruff.lint]
+select = ["F", "E", "W", "I", "B", "PL", "PD", "NPY", "RUF", "UP", "TID", "COM", "PT", "ARG", "PYI", "ANN"]
 ignore = [
     "PLR0912",  # Too many branches
     "PLR0913",  # Too many arguments in function definition
@@ -57,12 +60,11 @@ ignore = [
     "ANN101",  # Missing type annotation for `self` in method
     "ANN102",  # Missing type annotation for `cls` in classmethod
 ]
-select = ["F", "E", "W", "I", "B", "PL", "PD", "NPY", "RUF", "UP", "TID", "COM", "PT", "ARG", "PYI", "ANN"]
 
-[tool.ruff.pydocstyle]
+[tool.ruff.lint.pydocstyle]
 convention = "google"
 
-[tool.ruff.flake8-tidy-imports]
+[tool.ruff.lint.flake8-tidy-imports]
 ban-relative-imports = "all"
 
 [build-system]
