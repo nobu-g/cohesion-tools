@@ -44,7 +44,7 @@ src = ["src"]
 target-version = "py38"  # The minimum Python version to target
 
 [tool.ruff.lint]
-select = ["F", "E", "W", "I", "B", "PL", "PD", "NPY", "RUF", "UP", "TID", "COM", "PT", "ARG", "PYI", "ANN"]
+select = ["ALL"]
 ignore = [
     "PLR0912",  # Too many branches
     "PLR0913",  # Too many arguments in function definition
@@ -57,13 +57,35 @@ ignore = [
     "ANN003",  # Missing type annotation for `**kwargs`
     "ANN101",  # Missing type annotation for `self` in method
     "ANN102",  # Missing type annotation for `cls` in classmethod
+    "FA100",  # Missing `from __future__ import annotations`, but uses `...`
+    "S101",  # Use of `assert` detected
+    "G004",  # Logging statement uses f-string
+    "FBT001",  # Boolean-typed positional argument in function definition
+    "FBT002",  # Boolean default positional argument in function definition
+    "EM101",  # Exception must not use a string literal, assign to variable first
+    "EM102",  # Exception must not use an f-string literal, assign to variable first
+    "TRY003",  # Avoid specifying long messages outside the exception class
+    "D",  # pydocstyle
 ]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = [
+    "D104"  # Missing docstring in public package
+]
+"tests/*" = [
+    "D",  # pydocstyle
+    "S101",  # Use of `assert` detected
+    "INP001",  # File `...` is part of an implicit namespace package. Add an `__init__.py`
+]
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "all"
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
 
-[tool.ruff.lint.flake8-tidy-imports]
-ban-relative-imports = "all"
+[tool.ruff.lint.mccabe]
+max-complexity = 20  # default: 10
 
 [build-system]
 requires = ["hatchling"]

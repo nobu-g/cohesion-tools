@@ -15,10 +15,10 @@ class CoreferenceExtractor(BaseExtractor):
         candidates: List[BasePhrase] = self.get_candidates(mention, mention.document.base_phrases)
         for coreferent in mention.get_coreferents(include_nonidentical=False, include_self=False):
             if coreferent in candidates:
-                referents.append(coreferent)
+                referents.append(coreferent)  # noqa: PERF401
         for exophora_referent in [e.exophora_referent for e in mention.entities if e.exophora_referent is not None]:
             if exophora_referent.type in self.exophora_referent_types:
-                referents.append(exophora_referent)
+                referents.append(exophora_referent)  # noqa: PERF401
         return referents
 
     def is_target(self, mention: BasePhrase) -> bool:

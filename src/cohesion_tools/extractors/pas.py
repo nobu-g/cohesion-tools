@@ -32,7 +32,7 @@ class PasExtractor(BaseExtractor):
                     if argument.exophora_referent.type in self.exophora_referent_types:
                         all_arguments[case].append(argument)
                 else:
-                    raise ValueError(f"argument type {type(argument)} is not supported.")
+                    raise TypeError(f"argument type {type(argument)} is not supported.")
         return all_arguments
 
     def is_target(self, base_phrase: BasePhrase) -> bool:
@@ -42,7 +42,7 @@ class PasExtractor(BaseExtractor):
     def is_pas_target(base_phrase: BasePhrase, verbal: bool, nominal: bool) -> bool:
         if verbal and "用言" in base_phrase.features:
             return True
-        if nominal and "非用言格解析" in base_phrase.features:
+        if nominal and "非用言格解析" in base_phrase.features:  # noqa: SIM103
             return True
         return False
 

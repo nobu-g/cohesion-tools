@@ -98,9 +98,7 @@ class BridgingReferenceResolutionEvaluator:
                     metrics.loc[rel_type, analysis].tp_fp += 1
 
                 # Compute recall
-                if gold_antecedents or (
-                    local_comp_result.get(key, None) in self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE.values()
-                ):
+                if gold_antecedents or (local_comp_result.get(key) in self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE.values()):
                     recalled_antecedent: Optional[Argument] = None
                     for relaxed_gold_antecedent in relaxed_gold_antecedents:
                         if relaxed_gold_antecedent in predicted_antecedents:

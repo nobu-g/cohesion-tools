@@ -25,7 +25,7 @@ class BridgingExtractor(BaseExtractor):
                     if referent.exophora_referent.type in self.exophora_referent_types:
                         all_referents[rel_type].append(referent)
                 else:
-                    raise ValueError(f"argument type {type(referent)} is not supported.")
+                    raise TypeError(f"argument type {type(referent)} is not supported.")
         return all_referents
 
     def is_target(self, anaphor: BasePhrase) -> bool:

@@ -1,13 +1,15 @@
 import io
 import json
 from pathlib import Path
-from typing import List
+from typing import TYPE_CHECKING, List
 
 from rhoknp import Document
 
 from cohesion_tools.evaluators.cohesion import CohesionEvaluator
 from cohesion_tools.evaluators.pas import PASAnalysisEvaluator
-from cohesion_tools.evaluators.utils import F1Metric
+
+if TYPE_CHECKING:
+    from cohesion_tools.evaluators.utils import F1Metric
 
 
 def test_to_dict(
