@@ -27,10 +27,8 @@ jobs:
         run: curl -LsSf https://astral.sh/uv/${{ env.UV_VERSION }}/install.sh | sh
       - name: Install dependencies
         env:
-          VENV_PYTHON: ${{ steps.setup-python.outputs.python-path }}
-        run: |
-          uv venv --python $VENV_PYTHON
-          uv sync --all-extras
+          UV_PYTHON: ${{ steps.setup-python.outputs.python-path }}
+        run: uv sync --all-extras
       - name: Build package
         run: uvx --from build pyproject-build --installer uv
       - name: Install package from wheel (non-Windows)
