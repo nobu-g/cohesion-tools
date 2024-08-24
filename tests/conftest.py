@@ -9,22 +9,22 @@ from cohesion_tools.evaluators.cohesion import CohesionEvaluator
 from cohesion_tools.task import Task
 
 
-@pytest.fixture()
+@pytest.fixture
 def data_dir() -> Path:
     return Path(__file__).parent / "data"
 
 
-@pytest.fixture()
+@pytest.fixture
 def predicted_documents(data_dir: Path) -> List[Document]:
     return [Document.from_knp(path.read_text()) for path in sorted(data_dir.glob("system/*.knp"))]
 
 
-@pytest.fixture()
+@pytest.fixture
 def gold_documents(data_dir: Path) -> List[Document]:
     return [Document.from_knp(path.read_text()) for path in sorted(data_dir.glob("gold/*.knp"))]
 
 
-@pytest.fixture()
+@pytest.fixture
 def scorer() -> CohesionEvaluator:
     return CohesionEvaluator(
         tasks=[Task.PAS_ANALYSIS, Task.BRIDGING_REFERENCE_RESOLUTION, Task.COREFERENCE_RESOLUTION],
@@ -34,11 +34,11 @@ def scorer() -> CohesionEvaluator:
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 def abbreviated_documents(data_dir: Path) -> List[Document]:
     return [Document.from_knp(path.read_text()) for path in sorted(data_dir.glob("knp/*.knp"))]
 
 
-@pytest.fixture()
+@pytest.fixture
 def restored_documents(data_dir: Path) -> List[Document]:
     return [Document.from_knp(path.read_text()) for path in sorted(data_dir.glob("expected/restored/*.knp"))]
