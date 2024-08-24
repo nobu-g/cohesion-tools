@@ -6,6 +6,9 @@ on:
       - "v*.*.*"
   workflow_dispatch:
 
+env:
+  UV_VERSION: 0.3.3
+
 jobs:
   build-publish:
     runs-on: ubuntu-latest
@@ -21,14 +24,12 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.9"
-      - name: Install Poetry
-        run: pipx install poetry
-      - name: Add path for Python packages
-        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+      - name: Set up uv
+        run: curl -LsSf https://astral.sh/uv/${{ env.UV_VERSION }}/install.sh | sh
       - name: Install dependencies
-        run: poetry install --no-interaction --only main
+        run: uv sync --all-extras
       - name: Build package
-        run: poetry build
+        run: uvx --from build pyproject-build --installer uv
 
       - name: Publish package
         uses: pypa/gh-action-pypi-publish@release/v1
