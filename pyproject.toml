@@ -28,6 +28,7 @@ dev-dependencies = [
     "ipdb>=0.13.13",
     "pytest>=8.0.0",
     "pip>=24.2",
+    "setuptools>=69.0",  # https://stackoverflow.com/questions/75307814/error-python-packaging-tool-setuptools-not-found
 ]
 
 [tool.black]
