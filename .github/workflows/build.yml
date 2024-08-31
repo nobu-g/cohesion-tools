@@ -25,7 +25,7 @@ jobs:
       - name: Install dependencies
         env:
           UV_PYTHON: ${{ steps.setup-python.outputs.python-path }}
-        run: uv sync --all-extras --no-dev
+        run: uv pip install -r pyproject.toml --all-extras
       - name: Build package
         run: uvx --from build pyproject-build --installer uv
       - name: Install package from wheel (non-Windows)
