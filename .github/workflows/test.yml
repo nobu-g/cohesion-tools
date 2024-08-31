@@ -22,6 +22,6 @@ jobs:
       - name: Install uv
         run: pipx install uv
       - name: Install dependencies
-        run: uv sync --all-extras
+        run: uv sync --all-extras --upgrade
       - name: Run tests
         run: uv run pytest
