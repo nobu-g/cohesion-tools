@@ -22,7 +22,9 @@ jobs:
       - name: Install uv
         run: pipx install uv
       - name: Install dependencies
-        run: uv pip install -r pyproject.toml --all-extras
+        run: |
+          uv venv
+          uv pip install -r pyproject.toml --all-extras
       - name: Run tests (non-Windows)
         if: ${{ matrix.os != 'windows-latest' }}
         run: uv run pytest
