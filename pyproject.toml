@@ -1,6 +1,6 @@
 [project]
 name = "cohesion-tools"
-version = "0.7.3"
+version = "0.7.4"
 description = "A preprocessing and evaluation tools for Japanese cohesion analysis"
 license = "MIT"
 authors = [
