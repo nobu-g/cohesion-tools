@@ -1,7 +1,7 @@
 import io
 import json
 from pathlib import Path
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 from rhoknp import Document
 
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 
 def test_to_dict(
-    data_dir: Path, predicted_documents: List[Document], gold_documents: List[Document], scorer: CohesionEvaluator
+    data_dir: Path, predicted_documents: list[Document], gold_documents: list[Document], scorer: CohesionEvaluator
 ) -> None:
     expected_scores = json.loads(data_dir.joinpath("expected/score/0.json").read_text())
     score = scorer.run(predicted_documents, gold_documents).to_dict()
@@ -27,7 +27,7 @@ def test_to_dict(
 
 
 def test_score_addition(
-    data_dir: Path, predicted_documents: List[Document], gold_documents: List[Document], scorer: CohesionEvaluator
+    data_dir: Path, predicted_documents: list[Document], gold_documents: list[Document], scorer: CohesionEvaluator
 ) -> None:
     expected_scores = json.loads(data_dir.joinpath("expected/score/0.json").read_text())
     score1 = scorer.run(predicted_documents, gold_documents)
@@ -44,7 +44,7 @@ def test_score_addition(
             assert actual.tp == expected["tp"] * 2
 
 
-def test_identical_document(gold_documents: List[Document], scorer: CohesionEvaluator) -> None:
+def test_identical_document(gold_documents: list[Document], scorer: CohesionEvaluator) -> None:
     score = scorer.run(gold_documents, gold_documents)
     score_dict = score.to_dict()
     for value1 in score_dict.values():
@@ -53,7 +53,7 @@ def test_identical_document(gold_documents: List[Document], scorer: CohesionEval
 
 
 def test_export_txt(
-    data_dir: Path, predicted_documents: List[Document], gold_documents: List[Document], scorer: CohesionEvaluator
+    data_dir: Path, predicted_documents: list[Document], gold_documents: list[Document], scorer: CohesionEvaluator
 ) -> None:
     score = scorer.run(predicted_documents, gold_documents)
     with io.StringIO() as string:
@@ -64,7 +64,7 @@ def test_export_txt(
 
 
 def test_export_csv(
-    data_dir: Path, predicted_documents: List[Document], gold_documents: List[Document], scorer: CohesionEvaluator
+    data_dir: Path, predicted_documents: list[Document], gold_documents: list[Document], scorer: CohesionEvaluator
 ) -> None:
     score = scorer.run(predicted_documents, gold_documents)
     with io.StringIO() as string:

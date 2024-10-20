@@ -1,5 +1,6 @@
 import copy
-from typing import Callable, Collection, Dict, List, Optional, Set
+from collections.abc import Collection
+from typing import Callable, Optional
 
 import pandas as pd
 from rhoknp import BasePhrase, Document
@@ -24,15 +25,15 @@ class CoreferenceResolutionEvaluator:
         exophora_referent_types: Collection[ExophoraReferentType],
         is_target_mention: Optional[Callable[[BasePhrase], bool]] = None,
     ) -> None:
-        self.exophora_referent_types: List[ExophoraReferentType] = list(exophora_referent_types)
+        self.exophora_referent_types: list[ExophoraReferentType] = list(exophora_referent_types)
         self.is_target_mention: Callable[[BasePhrase], bool] = is_target_mention or (lambda _: True)
-        self.comp_result: Dict[tuple, str] = {}
+        self.comp_result: dict[tuple, str] = {}
 
     def run(self, predicted_document: Document, gold_document: Document) -> pd.Series:
         """Compute coreference resolution scores"""
         assert len(predicted_document.base_phrases) == len(gold_document.base_phrases)
-        metrics: Dict[str, F1Metric] = {anal: F1Metric() for anal in ("endophora", "exophora")}
-        local_comp_result: Dict[tuple, str] = {}
+        metrics: dict[str, F1Metric] = {anal: F1Metric() for anal in ("endophora", "exophora")}
+        local_comp_result: dict[tuple, str] = {}
         for predicted_mention, gold_mention in zip(predicted_document.base_phrases, gold_document.base_phrases):
             if self.is_target_mention(predicted_mention) is True:
                 predicted_other_mentions = self._filter_mentions(predicted_mention.get_coreferents(), predicted_mention)
@@ -99,13 +100,13 @@ class CoreferenceResolutionEvaluator:
         return pd.Series(metrics)
 
     @staticmethod
-    def _filter_mentions(other_mentions: List[BasePhrase], mention: BasePhrase) -> List[BasePhrase]:
+    def _filter_mentions(other_mentions: list[BasePhrase], mention: BasePhrase) -> list[BasePhrase]:
         """Filter out cataphora mentions"""
         return [
             another_mention for another_mention in other_mentions if another_mention.global_index < mention.global_index
         ]
 
-    def _filter_exophora_referents(self, exophora_referents: List[ExophoraReferent]) -> Set[str]:
+    def _filter_exophora_referents(self, exophora_referents: list[ExophoraReferent]) -> set[str]:
         filtered = set()
         for orig_exophora_referent in exophora_referents:
             exophora_referent = copy.copy(orig_exophora_referent)

@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import Any, Collection, List, TypeVar
+from collections.abc import Collection
+from typing import Any, TypeVar
 
 from rhoknp import BasePhrase, Morpheme
 from rhoknp.cohesion import ExophoraReferentType
@@ -8,7 +9,7 @@ T = TypeVar("T", BasePhrase, Morpheme)
 
 
 class BaseExtractor(ABC):
-    def __init__(self, exophora_referent_types: List[ExophoraReferentType]) -> None:
+    def __init__(self, exophora_referent_types: list[ExophoraReferentType]) -> None:
         self.exophora_referent_types = exophora_referent_types
 
     @abstractmethod
@@ -24,5 +25,5 @@ class BaseExtractor(ABC):
     def is_candidate(possible_candidate: T, anaphor: T) -> bool:
         raise NotImplementedError
 
-    def get_candidates(self, anaphor: T, morphemes_or_base_phrases: Collection[T]) -> List[T]:
+    def get_candidates(self, anaphor: T, morphemes_or_base_phrases: Collection[T]) -> list[T]:
         return [unit for unit in morphemes_or_base_phrases if self.is_candidate(unit, anaphor) is True]

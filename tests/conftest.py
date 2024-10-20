@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import List
 
 import pytest
 from rhoknp import Document
@@ -15,12 +14,12 @@ def data_dir() -> Path:
 
 
 @pytest.fixture
-def predicted_documents(data_dir: Path) -> List[Document]:
+def predicted_documents(data_dir: Path) -> list[Document]:
     return [Document.from_knp(path.read_text()) for path in sorted(data_dir.glob("system/*.knp"))]
 
 
 @pytest.fixture
-def gold_documents(data_dir: Path) -> List[Document]:
+def gold_documents(data_dir: Path) -> list[Document]:
     return [Document.from_knp(path.read_text()) for path in sorted(data_dir.glob("gold/*.knp"))]
 
 
@@ -35,10 +34,10 @@ def scorer() -> CohesionEvaluator:
 
 
 @pytest.fixture
-def abbreviated_documents(data_dir: Path) -> List[Document]:
+def abbreviated_documents(data_dir: Path) -> list[Document]:
     return [Document.from_knp(path.read_text()) for path in sorted(data_dir.glob("knp/*.knp"))]
 
 
 @pytest.fixture
-def restored_documents(data_dir: Path) -> List[Document]:
+def restored_documents(data_dir: Path) -> list[Document]:
     return [Document.from_knp(path.read_text()) for path in sorted(data_dir.glob("expected/restored/*.knp"))]

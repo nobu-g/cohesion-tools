@@ -1,5 +1,6 @@
 import copy
-from typing import Callable, ClassVar, Collection, Dict, List, Optional
+from collections.abc import Collection
+from typing import Callable, ClassVar, Optional
 
 import pandas as pd
 from rhoknp import Document
@@ -20,7 +21,7 @@ class PASAnalysisEvaluator:
         is_target_predicate: 評価の対象とする述語を指定する関数．引数に述語を受け取り，対象とする述語であれば True を返却．
     """
 
-    ARGUMENT_TYPE_TO_ANALYSIS_TYPE: ClassVar[Dict[ArgumentType, str]] = {
+    ARGUMENT_TYPE_TO_ANALYSIS_TYPE: ClassVar[dict[ArgumentType, str]] = {
         ArgumentType.CASE_EXPLICIT: "overt",
         ArgumentType.CASE_HIDDEN: "dep",
         ArgumentType.OMISSION: "zero_endophora",
@@ -33,10 +34,10 @@ class PASAnalysisEvaluator:
         cases: Collection[str],
         is_target_predicate: Optional[Callable[[Predicate], bool]] = None,
     ) -> None:
-        self.exophora_referent_types: List[ExophoraReferentType] = list(exophora_referent_types)
-        self.cases: List[str] = list(cases)
+        self.exophora_referent_types: list[ExophoraReferentType] = list(exophora_referent_types)
+        self.cases: list[str] = list(cases)
         self.is_target_predicate: Callable[[Predicate], bool] = is_target_predicate or (lambda _: True)
-        self.comp_result: Dict[tuple, str] = {}
+        self.comp_result: dict[tuple, str] = {}
 
     def run(self, predicted_document: Document, gold_document: Document) -> pd.DataFrame:
         """Compute predicate-argument structure analysis scores"""
@@ -47,7 +48,7 @@ class PASAnalysisEvaluator:
         )
         predicted_predicates = [base_phrase.pas.predicate for base_phrase in predicted_document.base_phrases]
         gold_predicates = [base_phrase.pas.predicate for base_phrase in gold_document.base_phrases]
-        local_comp_result: Dict[tuple, str] = {}
+        local_comp_result: dict[tuple, str] = {}
 
         assert len(predicted_predicates) == len(gold_predicates)
         for predicted_predicate, gold_predicate in zip(predicted_predicates, gold_predicates):
@@ -127,7 +128,7 @@ class PASAnalysisEvaluator:
         self.comp_result.update({(gold_document.doc_id, *k): v for k, v in local_comp_result.items()})
         return metrics
 
-    def _filter_arguments(self, arguments: List[Argument], predicate: Predicate) -> List[Argument]:
+    def _filter_arguments(self, arguments: list[Argument], predicate: Predicate) -> list[Argument]:
         filtered = []
         for orig_argument in arguments:
             argument = copy.copy(orig_argument)

@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Dict, List, Optional
+from typing import Optional
 
 from rhoknp import BasePhrase, Document, Sentence
 from rhoknp.cohesion import Argument, EndophoraArgument, ExophoraArgument, ExophoraReferentType
@@ -10,19 +10,19 @@ from cohesion_tools.extractors.base import BaseExtractor, T
 class PasExtractor(BaseExtractor):
     def __init__(
         self,
-        cases: List[str],
-        exophora_referent_types: List[ExophoraReferentType],
+        cases: list[str],
+        exophora_referent_types: list[ExophoraReferentType],
         verbal_predicate: bool = True,
         nominal_predicate: bool = True,
     ) -> None:
         super().__init__(exophora_referent_types)
-        self.cases: List[str] = cases
+        self.cases: list[str] = cases
         self.verbal_predicate: bool = verbal_predicate
         self.nominal_predicate: bool = nominal_predicate
 
-    def extract_rels(self, predicate: BasePhrase) -> Dict[str, List[Argument]]:
-        all_arguments: Dict[str, List[Argument]] = defaultdict(list)
-        candidates: List[BasePhrase] = self.get_candidates(predicate, predicate.document.base_phrases)
+    def extract_rels(self, predicate: BasePhrase) -> dict[str, list[Argument]]:
+        all_arguments: dict[str, list[Argument]] = defaultdict(list)
+        candidates: list[BasePhrase] = self.get_candidates(predicate, predicate.document.base_phrases)
         for case in self.cases:
             for argument in predicate.pas.get_arguments(case, relax=False):
                 if isinstance(argument, EndophoraArgument):
@@ -62,14 +62,14 @@ class PasExtractor(BaseExtractor):
             # 判定詞はスキップ
             if target_phrase.features.get("用言") == "判":
                 continue
-            arguments: Dict[str, list] = target_phrase.pas.get_all_arguments()
+            arguments: dict[str, list] = target_phrase.pas.get_all_arguments()
             # すでにアノテーションが存在する場合はスキップ
             if any(len(args) > 0 for args in arguments.values()):
                 continue
 
             coreferring_base_phrase: BasePhrase = target_phrase
             coreferent_has_pas_annotation = False
-            empty_rel_coreferent_global_indices: List[int] = []
+            empty_rel_coreferent_global_indices: list[int] = []
             while coreferent_has_pas_annotation is False:
                 result = PasExtractor._get_coreferent_by_rel_tags(coreferring_base_phrase)
                 if result is None:
@@ -115,7 +115,7 @@ class PasExtractor(BaseExtractor):
         Returns:
             Optional[BasePhrase]: 共参照している基本句
         """
-        sid_to_sentence: Dict[str, Sentence] = {sentence.sid: sentence for sentence in base_phrase.document.sentences}
+        sid_to_sentence: dict[str, Sentence] = {sentence.sid: sentence for sentence in base_phrase.document.sentences}
         for rel in base_phrase.rel_tags:
             if rel.type == "=":
                 if rel.sid is None:

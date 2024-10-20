@@ -1,9 +1,10 @@
 import io
+from collections.abc import Collection, Sequence
 from dataclasses import dataclass
 from functools import reduce
 from operator import add
 from pathlib import Path
-from typing import Collection, Dict, List, Optional, Sequence, TextIO, Union
+from typing import Optional, TextIO, Union
 
 import pandas as pd
 from rhoknp import Document
@@ -38,9 +39,9 @@ class CohesionEvaluator:
         pas_cases: Collection[str],
         bridging_rel_types: Optional[Collection[str]] = None,
     ) -> None:
-        self.exophora_referent_types: List[ExophoraReferentType] = list(exophora_referent_types)
-        self.pas_cases: List[str] = list(pas_cases)
-        self.tasks: List[Task] = list(map(Task, tasks))
+        self.exophora_referent_types: list[ExophoraReferentType] = list(exophora_referent_types)
+        self.pas_cases: list[str] = list(pas_cases)
+        self.tasks: list[Task] = list(map(Task, tasks))
         self.pas_evaluator = PASAnalysisEvaluator(exophora_referent_types, pas_cases)
         self.bridging_evaluator = BridgingReferenceResolutionEvaluator(
             exophora_referent_types,
@@ -60,9 +61,9 @@ class CohesionEvaluator:
         """
         # long document may have been ignored
         assert {d.doc_id for d in predicted_documents} <= {d.doc_id for d in gold_documents}
-        doc_ids: List[str] = [d.doc_id for d in predicted_documents]
-        doc_id2predicted_document: Dict[str, Document] = {d.doc_id: d for d in predicted_documents}
-        doc_id2gold_document: Dict[str, Document] = {d.doc_id: d for d in gold_documents}
+        doc_ids: list[str] = [d.doc_id for d in predicted_documents]
+        doc_id2predicted_document: dict[str, Document] = {d.doc_id: d for d in predicted_documents}
+        doc_id2gold_document: dict[str, Document] = {d.doc_id: d for d in gold_documents}
 
         results = []
         for doc_id in doc_ids:
@@ -100,7 +101,7 @@ class CohesionScore:
     bridging_metrics: Optional[pd.DataFrame]
     coreference_metrics: Optional[pd.Series]
 
-    def to_dict(self) -> Dict[str, Dict[str, F1Metric]]:
+    def to_dict(self) -> dict[str, dict[str, F1Metric]]:
         """Convert data to dictionary"""
         df_all = pd.DataFrame(index=["pas"])
         if self.pas_metrics is not None:
@@ -163,7 +164,7 @@ class CohesionScore:
         """
         result_dict = self.to_dict()
         text = "task" + sep
-        columns: List[str] = list(result_dict["pas"].keys())
+        columns: list[str] = list(result_dict["pas"].keys())
         text += sep.join(columns) + "\n"
         for task, measures in result_dict.items():
             text += task + sep

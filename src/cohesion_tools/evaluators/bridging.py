@@ -1,5 +1,6 @@
 import copy
-from typing import Callable, ClassVar, Collection, Dict, List, Optional
+from collections.abc import Collection
+from typing import Callable, ClassVar, Optional
 
 import pandas as pd
 from rhoknp import Document
@@ -20,7 +21,7 @@ class BridgingReferenceResolutionEvaluator:
         is_target_anaphor: 評価の対象とする照応詞を指定する関数．引数に照応詞を受け取り，対象とする照応詞であれば True を返却．
     """
 
-    ARGUMENT_TYPE_TO_ANALYSIS_TYPE: ClassVar[Dict[ArgumentType, str]] = {
+    ARGUMENT_TYPE_TO_ANALYSIS_TYPE: ClassVar[dict[ArgumentType, str]] = {
         ArgumentType.CASE_EXPLICIT: "dep",
         ArgumentType.CASE_HIDDEN: "dep",
         ArgumentType.OMISSION: "zero_endophora",
@@ -33,10 +34,10 @@ class BridgingReferenceResolutionEvaluator:
         rel_types: Collection[str],
         is_target_anaphor: Optional[Callable[[Predicate], bool]] = None,
     ) -> None:
-        self.exophora_referent_types: List[ExophoraReferentType] = list(exophora_referent_types)
-        self.rel_types: List[str] = list(rel_types)
+        self.exophora_referent_types: list[ExophoraReferentType] = list(exophora_referent_types)
+        self.rel_types: list[str] = list(rel_types)
         self.is_target_anaphor: Callable[[Predicate], bool] = is_target_anaphor or (lambda _: True)
-        self.comp_result: Dict[tuple, str] = {}
+        self.comp_result: dict[tuple, str] = {}
 
     def run(self, predicted_document: Document, gold_document: Document) -> pd.DataFrame:
         """Compute bridging reference resolution scores"""
@@ -47,13 +48,13 @@ class BridgingReferenceResolutionEvaluator:
         )
         predicted_anaphors = [base_phrase.pas.predicate for base_phrase in predicted_document.base_phrases]
         gold_anaphors = [base_phrase.pas.predicate for base_phrase in gold_document.base_phrases]
-        local_comp_result: Dict[tuple, str] = {}
+        local_comp_result: dict[tuple, str] = {}
 
         assert len(predicted_anaphors) == len(gold_anaphors)
         for predicted_anaphor, gold_anaphor in zip(predicted_anaphors, gold_anaphors):
             for rel_type in self.rel_types:
                 if self.is_target_anaphor(predicted_anaphor) is True:
-                    predicted_antecedents: List[Argument] = self._filter_referents(
+                    predicted_antecedents: list[Argument] = self._filter_referents(
                         predicted_anaphor.pas.get_arguments(rel_type, relax=False),
                         predicted_anaphor,
                     )
@@ -63,11 +64,11 @@ class BridgingReferenceResolutionEvaluator:
                 assert len(predicted_antecedents) in (0, 1)
 
                 if self.is_target_anaphor(gold_anaphor) is True:
-                    gold_antecedents: List[Argument] = self._filter_referents(
+                    gold_antecedents: list[Argument] = self._filter_referents(
                         gold_anaphor.pas.get_arguments(rel_type, relax=False),
                         gold_anaphor,
                     )
-                    relaxed_gold_antecedents: List[Argument] = gold_anaphor.pas.get_arguments(
+                    relaxed_gold_antecedents: list[Argument] = gold_anaphor.pas.get_arguments(
                         rel_type,
                         relax=True,
                         include_nonidentical=True,
@@ -123,7 +124,7 @@ class BridgingReferenceResolutionEvaluator:
         self.comp_result.update({(gold_document.doc_id, *k): v for k, v in local_comp_result.items()})
         return metrics
 
-    def _filter_referents(self, referents: List[Argument], anaphor: Predicate) -> List[Argument]:
+    def _filter_referents(self, referents: list[Argument], anaphor: Predicate) -> list[Argument]:
         filtered = []
         for orig_referent in referents:
             referent = copy.copy(orig_referent)

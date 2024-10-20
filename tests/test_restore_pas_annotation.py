@@ -1,12 +1,10 @@
-from typing import List
-
 from rhoknp import Document
 from rhoknp.cohesion import ExophoraReferentType
 
 from cohesion_tools.extractors.pas import PasExtractor
 
 
-def test_to_dict(abbreviated_documents: List[Document], restored_documents: List[Document]) -> None:
+def test_to_dict(abbreviated_documents: list[Document], restored_documents: list[Document]) -> None:
     pas_extractor = PasExtractor(
         cases=["ガ", "ヲ", "ニ", "ガ２", "デ", "ト", "カラ", "ヨリ", "マデ", "ヘ", "時間", "外の関係"],
         exophora_referent_types=list(
