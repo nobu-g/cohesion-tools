@@ -24,7 +24,7 @@ repos:
           - pandas
         language_version: python3.9
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.7.2
+    rev: v0.8.1
     hooks:
       - id: ruff
         args: [ --fix, --unsafe-fixes, --exit-non-zero-on-fix ]
