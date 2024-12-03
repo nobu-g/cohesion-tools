@@ -5,10 +5,10 @@ from cohesion_tools.evaluators.pas import PASAnalysisEvaluator
 from cohesion_tools.evaluators.utils import F1Metric
 
 __all__ = [
-    "PASAnalysisEvaluator",
     "BridgingReferenceResolutionEvaluator",
-    "CoreferenceResolutionEvaluator",
     "CohesionEvaluator",
     "CohesionScore",
+    "CoreferenceResolutionEvaluator",
     "F1Metric",
+    "PASAnalysisEvaluator",
 ]
