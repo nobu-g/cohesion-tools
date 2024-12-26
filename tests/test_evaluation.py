@@ -7,6 +7,7 @@ from rhoknp import Document
 
 from cohesion_tools.evaluators.cohesion import CohesionEvaluator
 from cohesion_tools.evaluators.pas import PASAnalysisEvaluator
+from cohesion_tools.task import Task
 
 if TYPE_CHECKING:
     from cohesion_tools.evaluators.utils import F1Metric
@@ -24,6 +25,36 @@ def test_to_dict(
             assert expected["denom_precision"] == actual.tp_fp
             assert expected["denom_recall"] == actual.tp_fn
             assert expected["tp"] == actual.tp
+
+
+def test_pas_only(
+    data_dir: Path, predicted_documents: list[Document], gold_documents: list[Document], scorer: CohesionEvaluator
+) -> None:
+    expected_scores = json.loads(data_dir.joinpath("expected/score/0.json").read_text())
+    scorer.tasks = [Task.PAS_ANALYSIS]
+    score = scorer.run(predicted_documents, gold_documents).to_dict()
+    for task in [f"pas_{c}" for c in scorer.pas_cases]:
+        task_result = score[task]
+        for anal, actual in task_result.items():
+            expected: dict = expected_scores[task][anal]
+            assert expected["denom_precision"] == actual.tp_fp
+            assert expected["denom_recall"] == actual.tp_fn
+            assert expected["tp"] == actual.tp
+
+
+def test_bridging_only(
+    data_dir: Path, predicted_documents: list[Document], gold_documents: list[Document], scorer: CohesionEvaluator
+) -> None:
+    expected_scores = json.loads(data_dir.joinpath("expected/score/0.json").read_text())
+    scorer.tasks = [Task.BRIDGING_REFERENCE_RESOLUTION]
+    score = scorer.run(predicted_documents, gold_documents).to_dict()
+    task = "bridging"
+    task_result = score[task]
+    for anal, actual in task_result.items():
+        expected: dict = expected_scores[task][anal]
+        assert expected["denom_precision"] == actual.tp_fp
+        assert expected["denom_recall"] == actual.tp_fn
+        assert expected["tp"] == actual.tp
 
 
 def test_score_addition(
