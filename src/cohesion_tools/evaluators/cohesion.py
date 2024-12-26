@@ -8,9 +8,7 @@ from typing import Optional, TextIO, Union
 
 import pandas as pd
 from rhoknp import Document
-from rhoknp.cohesion import (
-    ExophoraReferentType,
-)
+from rhoknp.cohesion import ExophoraReferentType
 
 from cohesion_tools.evaluators.bridging import BridgingReferenceResolutionEvaluator
 from cohesion_tools.evaluators.coreference import CoreferenceResolutionEvaluator
@@ -103,7 +101,7 @@ class CohesionScore:
 
     def to_dict(self) -> dict[str, dict[str, F1Metric]]:
         """Convert data to dictionary"""
-        df_all = pd.DataFrame(index=["pas"])
+        df_all = pd.DataFrame()
         if self.pas_metrics is not None:
             df_pas: pd.DataFrame = self.pas_metrics.copy()
             df_pas["overt_dep"] = df_pas["overt"] + df_pas["dep"]
@@ -126,9 +124,10 @@ class CohesionScore:
             df_all.loc["bridging"] = df_bridging.sum(axis=0)
 
         if self.coreference_metrics is not None:
-            df_coref = self.coreference_metrics.copy()
-            df_coref["all"] = df_coref["endophora"] + df_coref["exophora"]
-            df_all.loc["coreference"] = df_coref
+            series_coreference: pd.Series = self.coreference_metrics.copy()
+            series_coreference["all"] = series_coreference["endophora"] + series_coreference["exophora"]
+            df_coreference = series_coreference.to_frame("coreference").T
+            df_all = pd.concat([df_all, df_coreference])
 
         return {
             k1: {k2: v2 for k2, v2 in v1.items() if pd.notna(v2)} for k1, v1 in df_all.to_dict(orient="index").items()

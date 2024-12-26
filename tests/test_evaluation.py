@@ -57,6 +57,21 @@ def test_bridging_only(
         assert expected["tp"] == actual.tp
 
 
+def test_coreference_only(
+    data_dir: Path, predicted_documents: list[Document], gold_documents: list[Document], scorer: CohesionEvaluator
+) -> None:
+    expected_scores = json.loads(data_dir.joinpath("expected/score/0.json").read_text())
+    scorer.tasks = [Task.COREFERENCE_RESOLUTION]
+    score = scorer.run(predicted_documents, gold_documents).to_dict()
+    task = "coreference"
+    task_result = score[task]
+    for anal, actual in task_result.items():
+        expected: dict = expected_scores[task][anal]
+        assert expected["denom_precision"] == actual.tp_fp
+        assert expected["denom_recall"] == actual.tp_fn
+        assert expected["tp"] == actual.tp
+
+
 def test_score_addition(
     data_dir: Path, predicted_documents: list[Document], gold_documents: list[Document], scorer: CohesionEvaluator
 ) -> None:
