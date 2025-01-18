@@ -132,8 +132,7 @@ class PASAnalysisEvaluator:
         filtered = []
         for orig_argument in arguments:
             argument = copy.copy(orig_argument)
-            if argument.case.endswith("≒"):
-                argument.case = argument.case[:-1]
+            argument.case = argument.case.removesuffix("≒")
             if argument.case == "判ガ":
                 argument.case = "ガ"
             if isinstance(argument, ExophoraArgument):

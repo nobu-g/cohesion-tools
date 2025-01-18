@@ -56,8 +56,6 @@ ignore = [
     "COM812",  # Trailing comma missing
     "ANN002",  # Missing type annotation for `*args`
     "ANN003",  # Missing type annotation for `**kwargs`
-    "ANN101",  # Missing type annotation for `self` in method
-    "ANN102",  # Missing type annotation for `cls` in classmethod
     "FA100",  # Missing `from __future__ import annotations`, but uses `...`
     "S101",  # Use of `assert` detected
     "G004",  # Logging statement uses f-string

@@ -128,8 +128,7 @@ class BridgingReferenceResolutionEvaluator:
         filtered = []
         for orig_referent in referents:
             referent = copy.copy(orig_referent)
-            if referent.case.endswith("≒"):
-                referent.case = referent.case[:-1]
+            referent.case = referent.case.removesuffix("≒")
             if referent.case == "ノ？":
                 referent.case = "ノ"
             if isinstance(referent, ExophoraArgument):
