@@ -37,7 +37,7 @@ jobs:
         run: |
           source .venv/bin/activate
           wheelFile=$(ls dist/*.whl)
-          pip3 install "${wheelFile}[eval]"
+          pip install "${wheelFile}[eval]"
       - name: Install package from wheel (Windows)
         if: ${{ matrix.os == 'windows-latest' }}
         run: |
@@ -46,4 +46,6 @@ jobs:
           pip3 install "${wheelFile}[eval]"
         shell: pwsh
       - name: Import package
-        run: python3 -c "import cohesion_tools"
+        run: |
+          source .venv/bin/activate
+          python3 -c "import cohesion_tools"
