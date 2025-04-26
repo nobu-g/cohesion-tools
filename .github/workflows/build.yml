@@ -35,6 +35,7 @@ jobs:
       - name: Install package from wheel (non-Windows)
         if: ${{ matrix.os != 'windows-latest' }}
         run: |
+          python3 -m pip install -U pip virtualenv
           virtualenv -p ${{ matrix.python-version }} .venv
           source .venv/bin/activate
           wheelFile=$(ls dist/*.whl)
@@ -42,6 +43,7 @@ jobs:
       - name: Install package from wheel (Windows)
         if: ${{ matrix.os == 'windows-latest' }}
         run: |
+          python3 -m pip install -U pip virtualenv
           virtualenv -p ${{ matrix.python-version }} .venv
           .\.venv\Scripts\Activate
           $wheelFile = (Get-ChildItem -Path dist -Filter *.whl).FullName
