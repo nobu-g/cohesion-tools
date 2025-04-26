@@ -35,17 +35,26 @@ jobs:
       - name: Install package from wheel (non-Windows)
         if: ${{ matrix.os != 'windows-latest' }}
         run: |
+          virtualenv -p ${{ matrix.python-version }} .venv
           source .venv/bin/activate
           wheelFile=$(ls dist/*.whl)
           pip install "${wheelFile}[eval]"
       - name: Install package from wheel (Windows)
         if: ${{ matrix.os == 'windows-latest' }}
         run: |
+          virtualenv -p ${{ matrix.python-version }} .venv
           .\.venv\Scripts\Activate
           $wheelFile = (Get-ChildItem -Path dist -Filter *.whl).FullName
-          pip3 install "${wheelFile}[eval]"
+          pip install "${wheelFile}[eval]"
         shell: pwsh
-      - name: Import package
+      - name: Import package (non-Windows)
+        if: ${{ matrix.os != 'windows-latest' }}
         run: |
           source .venv/bin/activate
-          python3 -c "import cohesion_tools"
+          python -c "import cohesion_tools"
+      - name: Import package (Windows)
+        if: ${{ matrix.os == 'windows-latest' }}
+        run: |
+          .\.venv\Scripts\Activate
+          python -c "import cohesion_tools"
+        shell: pwsh
