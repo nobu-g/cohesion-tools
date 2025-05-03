@@ -13,7 +13,6 @@ jobs:
       name: pypi
       url: https://pypi.org/p/cohesion-tools
     permissions:
-      contents: read
       id-token: write
     steps:
       - uses: actions/checkout@v4
@@ -21,10 +20,8 @@ jobs:
         uses: astral-sh/setup-uv@v6
         with:
           python-version: "3.9"
-      - name: Install dependencies
-        run: uv sync
       - name: Build package
-        run: uvx --from build pyproject-build --installer uv
+        run: uv build -o dist
       - name: Publish package
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
