@@ -20,7 +20,7 @@ repos:
     hooks:
       - id: mypy
         additional_dependencies:
-          - rhoknp==1.7.0
+          - rhoknp==1.7.1
           - pandas
         language_version: python3.9
   - repo: https://github.com/astral-sh/ruff-pre-commit
