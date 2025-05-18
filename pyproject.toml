@@ -56,13 +56,6 @@ build-backend = "hatchling.build"
 [tool.uv]
 package = true
 
-[tool.black]
-line-length = 120
-target-version = ["py39", "py310", "py311", "py312", "py313"]
-
-[tool.mypy]
-python_version = 3.9
-
 [tool.ruff]
 line-length = 120
 indent-width = 4
@@ -109,3 +102,6 @@ convention = "google"
 
 [tool.ruff.lint.mccabe]
 max-complexity = 20  # default: 10
+
+[tool.mypy]
+python_version = 3.9
