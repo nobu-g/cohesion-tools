@@ -12,6 +12,9 @@ class F1Metric:
     def __add__(self, other: "F1Metric") -> "F1Metric":
         return F1Metric(self.tp_fp + other.tp_fp, self.tp_fn + other.tp_fn, self.tp + other.tp)
 
+    def __hash__(self) -> int:
+        return hash((self.tp_fp, self.tp_fn, self.tp))
+
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, type(self)):
             return False
