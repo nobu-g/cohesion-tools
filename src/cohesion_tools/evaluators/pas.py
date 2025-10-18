@@ -1,6 +1,6 @@
 import copy
-from collections.abc import Collection
-from typing import Callable, ClassVar, Optional
+from collections.abc import Callable, Collection
+from typing import ClassVar
 
 import pandas as pd
 from rhoknp import Document
@@ -32,7 +32,7 @@ class PASAnalysisEvaluator:
         self,
         exophora_referent_types: Collection[ExophoraReferentType],
         cases: Collection[str],
-        is_target_predicate: Optional[Callable[[Predicate], bool]] = None,
+        is_target_predicate: Callable[[Predicate], bool] | None = None,
     ) -> None:
         self.exophora_referent_types: list[ExophoraReferentType] = list(exophora_referent_types)
         self.cases: list[str] = list(cases)
@@ -51,7 +51,7 @@ class PASAnalysisEvaluator:
         local_comp_result: dict[tuple, str] = {}
 
         assert len(predicted_predicates) == len(gold_predicates)
-        for predicted_predicate, gold_predicate in zip(predicted_predicates, gold_predicates):
+        for predicted_predicate, gold_predicate in zip(predicted_predicates, gold_predicates, strict=True):
             for pas_case in self.cases:
                 if self.is_target_predicate(predicted_predicate) is True:
                     predicted_pas_arguments = self._filter_arguments(
@@ -107,7 +107,7 @@ class PASAnalysisEvaluator:
                     len(gold_pas_arguments) > 0
                     or local_comp_result.get(key) in self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE.values()
                 ):
-                    recalled_pas_argument: Optional[Argument] = None
+                    recalled_pas_argument: Argument | None = None
                     for relaxed_gold_pas_argument in relaxed_gold_pas_arguments:
                         if relaxed_gold_pas_argument in predicted_pas_arguments:
                             recalled_pas_argument = (

@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from functools import reduce
 from operator import add
 from pathlib import Path
-from typing import Optional, TextIO, Union
+from typing import TextIO
 
 import pandas as pd
 from rhoknp import Document
@@ -32,10 +32,10 @@ class CohesionEvaluator:
 
     def __init__(
         self,
-        tasks: Union[Collection[Task], Collection[str]],
+        tasks: Collection[Task] | Collection[str],
         exophora_referent_types: Collection[ExophoraReferentType],
         pas_cases: Collection[str],
-        bridging_rel_types: Optional[Collection[str]] = None,
+        bridging_rel_types: Collection[str] | None = None,
     ) -> None:
         self.exophora_referent_types: list[ExophoraReferentType] = list(exophora_referent_types)
         self.pas_cases: list[str] = list(pas_cases)
@@ -95,9 +95,9 @@ class CohesionEvaluator:
 class CohesionScore:
     """A data class for storing the numerical result of an evaluation"""
 
-    pas_metrics: Optional[pd.DataFrame]
-    bridging_metrics: Optional[pd.DataFrame]
-    coreference_metrics: Optional[pd.Series]
+    pas_metrics: pd.DataFrame | None
+    bridging_metrics: pd.DataFrame | None
+    coreference_metrics: pd.Series | None
 
     def to_dict(self) -> dict[str, dict[str, F1Metric]]:
         """Convert data to dictionary"""
@@ -133,7 +133,7 @@ class CohesionScore:
             k1: {k2: v2 for k2, v2 in v1.items() if pd.notna(v2)} for k1, v1 in df_all.to_dict(orient="index").items()
         }
 
-    def export_txt(self, destination: Union[str, Path, TextIO]) -> None:
+    def export_txt(self, destination: str | Path | TextIO) -> None:
         """Export the evaluation results in a text format.
 
         Args:
@@ -154,7 +154,7 @@ class CohesionScore:
         elif isinstance(destination, io.TextIOBase):
             destination.write(text)
 
-    def export_csv(self, destination: Union[str, Path, TextIO], sep: str = ",") -> None:
+    def export_csv(self, destination: str | Path | TextIO, sep: str = ",") -> None:
         """Export the evaluation results in a csv format.
 
         Args:

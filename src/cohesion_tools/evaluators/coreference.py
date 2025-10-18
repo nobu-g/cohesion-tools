@@ -1,6 +1,5 @@
 import copy
-from collections.abc import Collection
-from typing import Callable, Optional
+from collections.abc import Callable, Collection
 
 import pandas as pd
 from rhoknp import BasePhrase, Document
@@ -23,7 +22,7 @@ class CoreferenceResolutionEvaluator:
     def __init__(
         self,
         exophora_referent_types: Collection[ExophoraReferentType],
-        is_target_mention: Optional[Callable[[BasePhrase], bool]] = None,
+        is_target_mention: Callable[[BasePhrase], bool] | None = None,
     ) -> None:
         self.exophora_referent_types: list[ExophoraReferentType] = list(exophora_referent_types)
         self.is_target_mention: Callable[[BasePhrase], bool] = is_target_mention or (lambda _: True)
@@ -34,7 +33,9 @@ class CoreferenceResolutionEvaluator:
         assert len(predicted_document.base_phrases) == len(gold_document.base_phrases)
         metrics: dict[str, F1Metric] = {anal: F1Metric() for anal in ("endophora", "exophora")}
         local_comp_result: dict[tuple, str] = {}
-        for predicted_mention, gold_mention in zip(predicted_document.base_phrases, gold_document.base_phrases):
+        for predicted_mention, gold_mention in zip(
+            predicted_document.base_phrases, gold_document.base_phrases, strict=True
+        ):
             if self.is_target_mention(predicted_mention) is True:
                 predicted_other_mentions = self._filter_mentions(predicted_mention.get_coreferents(), predicted_mention)
                 predicted_exophora_referents = self._filter_exophora_referents(

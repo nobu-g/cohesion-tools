@@ -19,7 +19,6 @@ classifiers = [
     "Operating System :: Microsoft :: Windows",
     "Operating System :: POSIX :: Linux",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -31,7 +30,7 @@ classifiers = [
     "Topic :: Text Processing",
     "Topic :: Text Processing :: Linguistic",
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
     "rhoknp>=1.5.1",
 ]
@@ -43,8 +42,7 @@ eval = [
 
 [dependency-groups]
 dev = [
-    'ipython>=8.18.0,<8.19.0; python_version == "3.9"',
-    'ipython>=8.19.0; python_version == "3.10"',
+    'ipython>=8.19.0; python_version < "3.11"',
     'ipython>=9.6.0; python_version >= "3.11"',
     "ipdb>=0.13.13",
     "pytest>=8.0.0",
@@ -62,7 +60,7 @@ package = true
 line-length = 120
 indent-width = 4
 src = ["src"]
-target-version = "py39"  # The minimum Python version to target
+target-version = "py310"  # The minimum Python version to target
 
 [tool.ruff.lint]
 select = ["ALL"]
@@ -106,4 +104,7 @@ convention = "google"
 max-complexity = 20  # default: 10
 
 [tool.mypy]
-python_version = 3.9
+python_version = "3.10"
+
+[tool.ty.environment]
+python-version = "3.10"

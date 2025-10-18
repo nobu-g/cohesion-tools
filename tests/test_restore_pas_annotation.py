@@ -13,9 +13,9 @@ def test_to_dict(abbreviated_documents: list[Document], restored_documents: list
         verbal_predicate=True,
         nominal_predicate=True,
     )
-    for abbreviated_document, expected_document in zip(abbreviated_documents, restored_documents):
+    for abbreviated_document, expected_document in zip(abbreviated_documents, restored_documents, strict=True):
         actual_document = pas_extractor.restore_pas_annotation(abbreviated_document)
         for actual_base_phrase, expected_base_phrase in zip(
-            actual_document.base_phrases, expected_document.base_phrases
+            actual_document.base_phrases, expected_document.base_phrases, strict=True
         ):
             assert actual_base_phrase.rel_tags == expected_base_phrase.rel_tags

@@ -1,6 +1,6 @@
 import copy
-from collections.abc import Collection
-from typing import Callable, ClassVar, Optional
+from collections.abc import Callable, Collection
+from typing import ClassVar
 
 import pandas as pd
 from rhoknp import Document
@@ -32,7 +32,7 @@ class BridgingReferenceResolutionEvaluator:
         self,
         exophora_referent_types: Collection[ExophoraReferentType],
         rel_types: Collection[str],
-        is_target_anaphor: Optional[Callable[[Predicate], bool]] = None,
+        is_target_anaphor: Callable[[Predicate], bool] | None = None,
     ) -> None:
         self.exophora_referent_types: list[ExophoraReferentType] = list(exophora_referent_types)
         self.rel_types: list[str] = list(rel_types)
@@ -51,7 +51,7 @@ class BridgingReferenceResolutionEvaluator:
         local_comp_result: dict[tuple, str] = {}
 
         assert len(predicted_anaphors) == len(gold_anaphors)
-        for predicted_anaphor, gold_anaphor in zip(predicted_anaphors, gold_anaphors):
+        for predicted_anaphor, gold_anaphor in zip(predicted_anaphors, gold_anaphors, strict=True):
             for rel_type in self.rel_types:
                 if self.is_target_anaphor(predicted_anaphor) is True:
                     predicted_antecedents: list[Argument] = self._filter_referents(
@@ -100,7 +100,7 @@ class BridgingReferenceResolutionEvaluator:
 
                 # Compute recall
                 if gold_antecedents or (local_comp_result.get(key) in self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE.values()):
-                    recalled_antecedent: Optional[Argument] = None
+                    recalled_antecedent: Argument | None = None
                     for relaxed_gold_antecedent in relaxed_gold_antecedents:
                         if relaxed_gold_antecedent in predicted_antecedents:
                             recalled_antecedent = (
