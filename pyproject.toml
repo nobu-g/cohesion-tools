@@ -45,6 +45,7 @@ dev = [
     'ipython>=8.19.0; python_version < "3.11"',
     'ipython>=9.6.0; python_version >= "3.11"',
     "ipdb>=0.13.13",
+    "pandas-stubs>=2.3.0,<2.4.0",
     "pytest>=8.0.0",
     "pip>=24.2",
 ]
