@@ -40,10 +40,6 @@ dependencies = [
 eval = [
     'pandas>=2.3.0,<2.4.0',
 ]
-#ipython = [
-#    { version =  "^8.37", python = "<3.11" },
-#    { version =  "^9.6", python = ">=3.11" }
-#]
 
 [dependency-groups]
 dev = [
