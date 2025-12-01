@@ -43,8 +43,8 @@ class BridgingReferenceResolutionEvaluator:
         """Compute bridging reference resolution scores"""
         metrics = pd.DataFrame(
             [[F1Metric() for _ in ("dep", "zero_endophora", "exophora")] for _ in self.rel_types],
-            index=self.rel_types,
-            columns=["dep", "zero_endophora", "exophora"],
+            index=pd.Index(self.rel_types),
+            columns=pd.Index(["dep", "zero_endophora", "exophora"]),
         )
         predicted_anaphors = [base_phrase.pas.predicate for base_phrase in predicted_document.base_phrases]
         gold_anaphors = [base_phrase.pas.predicate for base_phrase in gold_document.base_phrases]

@@ -26,4 +26,9 @@ class BaseExtractor(ABC):
         raise NotImplementedError
 
     def get_candidates(self, anaphor: T, morphemes_or_base_phrases: Collection[T]) -> list[T]:
-        return [unit for unit in morphemes_or_base_phrases if self.is_candidate(unit, anaphor) is True]
+        # Cast to satisfy type checker - the subclass implementation will handle the correct types
+        return [
+            unit
+            for unit in morphemes_or_base_phrases
+            if self.is_candidate(unit, anaphor) is True  # type: ignore[arg-type]
+        ]

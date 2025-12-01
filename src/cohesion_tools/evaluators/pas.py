@@ -43,8 +43,8 @@ class PASAnalysisEvaluator:
         """Compute predicate-argument structure analysis scores"""
         metrics = pd.DataFrame(
             [[F1Metric() for _ in self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE.values()] for _ in self.cases],
-            index=self.cases,
-            columns=list(self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE.values()),
+            index=pd.Index(self.cases),
+            columns=pd.Index(list(self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE.values())),
         )
         predicted_predicates = [base_phrase.pas.predicate for base_phrase in predicted_document.base_phrases]
         gold_predicates = [base_phrase.pas.predicate for base_phrase in gold_document.base_phrases]
