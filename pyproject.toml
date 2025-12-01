@@ -66,9 +66,6 @@ target-version = "py310"  # The minimum Python version to target
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = [
-    "PLR0912",  # Too many branches
-    "PLR0913",  # Too many arguments in function definition
-    "PLR0915",  # Too many statements
     "E501",  # Line too long
     "RUF001",  # String contains ambiguous `ノ` (KATAKANA LETTER NO). Did you mean `/` (SOLIDUS)?
     "RUF002",  # Docstring contains ambiguous `，` (FULLWIDTH COMMA). Did you mean `,` (COMMA)?
@@ -100,6 +97,10 @@ ban-relative-imports = "all"
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
+
+[tool.ruff.lint.pylint]
+max-branches = 20
+max-statements = 60
 
 [tool.ruff.lint.mccabe]
 max-complexity = 20  # default: 10
