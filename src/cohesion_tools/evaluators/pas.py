@@ -1,6 +1,6 @@
 import copy
 from collections.abc import Callable, Collection
-from typing import ClassVar
+from typing import ClassVar, cast
 
 import pandas as pd
 from rhoknp import Document
@@ -95,11 +95,11 @@ class PASAnalysisEvaluator:
                         # Use argument_type of gold argument if possible
                         analysis = self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE[relaxed_gold_pas_argument.type]
                         local_comp_result[key] = analysis
-                        metrics.loc[pas_case, analysis].tp += 1
+                        cast("F1Metric", metrics.loc[pas_case, analysis]).tp += 1
                     else:
                         analysis = self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE[predicted_pas_argument.type]
                         local_comp_result[key] = "wrong"  # precision が下がる
-                    metrics.loc[pas_case, analysis].tp_fp += 1
+                    cast("F1Metric", metrics.loc[pas_case, analysis]).tp_fp += 1
 
                 # Compute recall
                 # 正解が複数ある場合、そのうち一つが当てられていればそれを正解に採用
@@ -124,7 +124,7 @@ class PASAnalysisEvaluator:
                             assert local_comp_result[key] == "wrong"
                         else:
                             local_comp_result[key] = "wrong"  # recall が下がる
-                    metrics.loc[pas_case, analysis].tp_fn += 1
+                    cast("F1Metric", metrics.loc[pas_case, analysis]).tp_fn += 1
         self.comp_result.update({(gold_document.doc_id, *k): v for k, v in local_comp_result.items()})
         return metrics
 

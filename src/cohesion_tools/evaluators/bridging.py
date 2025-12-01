@@ -1,6 +1,6 @@
 import copy
 from collections.abc import Callable, Collection
-from typing import ClassVar
+from typing import ClassVar, cast
 
 import pandas as pd
 from rhoknp import Document
@@ -92,11 +92,11 @@ class BridgingReferenceResolutionEvaluator:
                         ]
                         analysis = self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE[relaxed_gold_antecedent.type]
                         local_comp_result[key] = analysis
-                        metrics.loc[rel_type, analysis].tp += 1
+                        cast("F1Metric", metrics.loc[rel_type, analysis]).tp += 1
                     else:
                         analysis = self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE[predicted_antecedent.type]
                         local_comp_result[key] = "wrong"
-                    metrics.loc[rel_type, analysis].tp_fp += 1
+                    cast("F1Metric", metrics.loc[rel_type, analysis]).tp_fp += 1
 
                 # Compute recall
                 if gold_antecedents or (local_comp_result.get(key) in self.ARGUMENT_TYPE_TO_ANALYSIS_TYPE.values()):
@@ -120,7 +120,7 @@ class BridgingReferenceResolutionEvaluator:
                             assert local_comp_result[key] == "wrong"
                         else:
                             local_comp_result[key] = "wrong"
-                    metrics.loc[rel_type, analysis].tp_fn += 1
+                    cast("F1Metric", metrics.loc[rel_type, analysis]).tp_fn += 1
         self.comp_result.update({(gold_document.doc_id, *k): v for k, v in local_comp_result.items()})
         return metrics
 

@@ -19,11 +19,11 @@ class PasExtractor(BaseExtractor):
         self.verbal_predicate: bool = verbal_predicate
         self.nominal_predicate: bool = nominal_predicate
 
-    def extract_rels(self, predicate: BasePhrase) -> dict[str, list[Argument]]:
+    def extract_rels(self, base_phrase: BasePhrase) -> dict[str, list[Argument]]:
         all_arguments: dict[str, list[Argument]] = defaultdict(list)
-        candidates: list[BasePhrase] = self.get_candidates(predicate, predicate.document.base_phrases)
+        candidates: list[BasePhrase] = self.get_candidates(base_phrase, base_phrase.document.base_phrases)
         for case in self.cases:
-            for argument in predicate.pas.get_arguments(case, relax=False):
+            for argument in base_phrase.pas.get_arguments(case, relax=False):
                 if isinstance(argument, EndophoraArgument):
                     if argument.base_phrase in candidates:
                         all_arguments[case].append(argument)
@@ -46,10 +46,11 @@ class PasExtractor(BaseExtractor):
         return False
 
     @staticmethod
-    def is_candidate(unit: T, predicate: T) -> bool:
-        is_anaphora = unit.global_index < predicate.global_index
+    def is_candidate(possible_candidate: T, anaphor: T) -> bool:
+        is_anaphora = possible_candidate.global_index < anaphor.global_index
         is_intra_sentential_cataphora = (
-            unit.global_index > predicate.global_index and unit.sentence.sid == predicate.sentence.sid
+            possible_candidate.global_index > anaphor.global_index
+            and possible_candidate.sentence.sid == anaphor.sentence.sid
         )
         return is_anaphora or is_intra_sentential_cataphora
 

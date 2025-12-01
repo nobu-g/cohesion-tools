@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from functools import reduce
 from operator import add
 from pathlib import Path
-from typing import TextIO
+from typing import Any, TextIO, cast
 
 import pandas as pd
 from rhoknp import Document
@@ -129,8 +129,10 @@ class CohesionScore:
             df_coreference = series_coreference.to_frame("coreference").T
             df_all = pd.concat([df_all, df_coreference])
 
+        result_dict = df_all.to_dict(orient="index")
         return {
-            k1: {k2: v2 for k2, v2 in v1.items() if pd.notna(v2)} for k1, v1 in df_all.to_dict(orient="index").items()
+            str(k1): {str(k2): cast("F1Metric", v2) for k2, v2 in cast("dict[Any, Any]", v1).items() if pd.notna(v2)}
+            for k1, v1 in result_dict.items()
         }
 
     def export_txt(self, destination: str | Path | TextIO) -> None:

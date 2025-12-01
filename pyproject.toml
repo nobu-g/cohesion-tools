@@ -32,7 +32,7 @@ classifiers = [
 ]
 requires-python = ">=3.10"
 dependencies = [
-    "rhoknp>=1.5.1",
+    "rhoknp>=1.7.0",
 ]
 
 [project.optional-dependencies]

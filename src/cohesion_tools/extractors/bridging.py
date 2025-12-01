@@ -12,11 +12,11 @@ class BridgingExtractor(BaseExtractor):
         assert "ノ" in rel_types, '"ノ" not found in rel_types'
         self.rel_types = rel_types
 
-    def extract_rels(self, anaphor: BasePhrase) -> dict[str, list[Argument]]:
+    def extract_rels(self, base_phrase: BasePhrase) -> dict[str, list[Argument]]:
         all_referents: dict[str, list[Argument]] = defaultdict(list)
-        candidates: list[BasePhrase] = self.get_candidates(anaphor, anaphor.document.base_phrases)
+        candidates: list[BasePhrase] = self.get_candidates(base_phrase, base_phrase.document.base_phrases)
         for rel_type in self.rel_types:
-            for referent in anaphor.pas.get_arguments(rel_type, relax=False):
+            for referent in base_phrase.pas.get_arguments(rel_type, relax=False):
                 if isinstance(referent, EndophoraArgument):
                     if referent.base_phrase in candidates:
                         all_referents[rel_type].append(referent)
@@ -27,17 +27,18 @@ class BridgingExtractor(BaseExtractor):
                     raise TypeError(f"argument type {type(referent)} is not supported.")
         return all_referents
 
-    def is_target(self, anaphor: BasePhrase) -> bool:
-        return self.is_bridging_target(anaphor)
+    def is_target(self, base_phrase: BasePhrase) -> bool:
+        return self.is_bridging_target(base_phrase)
 
     @staticmethod
     def is_bridging_target(anaphor: BasePhrase) -> bool:
         return anaphor.features.get("体言") is True and "非用言格解析" not in anaphor.features
 
     @staticmethod
-    def is_candidate(unit: T, anaphor: T) -> bool:
-        is_anaphora = unit.global_index < anaphor.global_index
+    def is_candidate(possible_candidate: T, anaphor: T) -> bool:
+        is_anaphora = possible_candidate.global_index < anaphor.global_index
         is_intra_sentential_cataphora = (
-            unit.global_index > anaphor.global_index and unit.sentence.sid == anaphor.sentence.sid
+            possible_candidate.global_index > anaphor.global_index
+            and possible_candidate.sentence.sid == anaphor.sentence.sid
         )
         return is_anaphora or is_intra_sentential_cataphora
