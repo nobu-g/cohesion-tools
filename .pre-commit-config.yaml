@@ -18,14 +18,6 @@ repos:
       - id: ruff-check
         args: [ --fix, --unsafe-fixes ]
       - id: ruff-format
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.19.0
-    hooks:
-      - id: mypy
-        additional_dependencies:
-          - rhoknp==1.8.0
-          - pandas
-          - pytest
   - repo: local
     hooks:
       - id: ty
