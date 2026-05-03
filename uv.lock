@@ -42,7 +42,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "pandas", marker = "extra == 'eval'", specifier = ">=2.3.0,<2.4.0" },
-    { name = "rhoknp", specifier = ">=1.5.1" },
+    { name = "rhoknp", specifier = ">=1.7.0" },
 ]
 provides-extras = ["eval"]
 
