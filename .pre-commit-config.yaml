@@ -18,17 +18,10 @@ repos:
       - id: ruff-check
         args: [ --fix, --unsafe-fixes ]
       - id: ruff-format
-  - repo: local
+  - repo: https://github.com/astral-sh/ty-pre-commit
+    rev: v0.0.50
     hooks:
       - id: ty
-        name: ty check
-        entry: uvx ty check
-        language: python
-        pass_filenames: false
-        additional_dependencies:
-          - rhoknp==1.8.0
-          - pandas
-          - pytest
   - repo: https://github.com/rhysd/actionlint
     rev: v1.7.12
     hooks:
