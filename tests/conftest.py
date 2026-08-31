@@ -15,12 +15,12 @@ def data_dir() -> Path:
 
 @pytest.fixture
 def predicted_documents(data_dir: Path) -> list[Document]:
-    return [Document.from_knp(path.read_text()) for path in sorted(data_dir.glob("system/*.knp"))]
+    return [Document.from_knp(path.read_text(encoding="utf-8")) for path in sorted(data_dir.glob("system/*.knp"))]
 
 
 @pytest.fixture
 def gold_documents(data_dir: Path) -> list[Document]:
-    return [Document.from_knp(path.read_text()) for path in sorted(data_dir.glob("gold/*.knp"))]
+    return [Document.from_knp(path.read_text(encoding="utf-8")) for path in sorted(data_dir.glob("gold/*.knp"))]
 
 
 @pytest.fixture
@@ -35,9 +35,11 @@ def scorer() -> CohesionEvaluator:
 
 @pytest.fixture
 def abbreviated_documents(data_dir: Path) -> list[Document]:
-    return [Document.from_knp(path.read_text()) for path in sorted(data_dir.glob("knp/*.knp"))]
+    return [Document.from_knp(path.read_text(encoding="utf-8")) for path in sorted(data_dir.glob("knp/*.knp"))]
 
 
 @pytest.fixture
 def restored_documents(data_dir: Path) -> list[Document]:
-    return [Document.from_knp(path.read_text()) for path in sorted(data_dir.glob("expected/restored/*.knp"))]
+    return [
+        Document.from_knp(path.read_text(encoding="utf-8")) for path in sorted(data_dir.glob("expected/restored/*.knp"))
+    ]

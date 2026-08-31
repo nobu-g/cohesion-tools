@@ -152,7 +152,7 @@ class CohesionScore:
         text = "\n".join(lines) + "\n"
 
         if isinstance(destination, (Path, str)):
-            Path(destination).write_text(text)
+            Path(destination).write_text(text, encoding="utf-8")
         elif isinstance(destination, io.TextIOBase):
             destination.write(text)
 
@@ -173,7 +173,7 @@ class CohesionScore:
             text += "\n"
 
         if isinstance(destination, (Path, str)):
-            Path(destination).write_text(text)
+            Path(destination).write_text(text, encoding="utf-8")
         elif isinstance(destination, io.TextIOBase):
             destination.write(text)
 

@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 def test_to_dict(
     data_dir: Path, predicted_documents: list[Document], gold_documents: list[Document], scorer: CohesionEvaluator
 ) -> None:
-    expected_scores = json.loads(data_dir.joinpath("expected/score/0.json").read_text())
+    expected_scores = json.loads(data_dir.joinpath("expected/score/0.json").read_text(encoding="utf-8"))
     score = scorer.run(predicted_documents, gold_documents).to_dict()
     for task in [*[f"pas_{c}" for c in scorer.pas_cases], "bridging", "coreference"]:
         task_result = score[task]
@@ -30,7 +30,7 @@ def test_to_dict(
 def test_pas_only(
     data_dir: Path, predicted_documents: list[Document], gold_documents: list[Document], scorer: CohesionEvaluator
 ) -> None:
-    expected_scores = json.loads(data_dir.joinpath("expected/score/0.json").read_text())
+    expected_scores = json.loads(data_dir.joinpath("expected/score/0.json").read_text(encoding="utf-8"))
     scorer.tasks = [Task.PAS_ANALYSIS]
     score = scorer.run(predicted_documents, gold_documents).to_dict()
     for task in [f"pas_{c}" for c in scorer.pas_cases]:
@@ -45,7 +45,7 @@ def test_pas_only(
 def test_bridging_only(
     data_dir: Path, predicted_documents: list[Document], gold_documents: list[Document], scorer: CohesionEvaluator
 ) -> None:
-    expected_scores = json.loads(data_dir.joinpath("expected/score/0.json").read_text())
+    expected_scores = json.loads(data_dir.joinpath("expected/score/0.json").read_text(encoding="utf-8"))
     scorer.tasks = [Task.BRIDGING_REFERENCE_RESOLUTION]
     score = scorer.run(predicted_documents, gold_documents).to_dict()
     task = "bridging"
@@ -60,7 +60,7 @@ def test_bridging_only(
 def test_coreference_only(
     data_dir: Path, predicted_documents: list[Document], gold_documents: list[Document], scorer: CohesionEvaluator
 ) -> None:
-    expected_scores = json.loads(data_dir.joinpath("expected/score/0.json").read_text())
+    expected_scores = json.loads(data_dir.joinpath("expected/score/0.json").read_text(encoding="utf-8"))
     scorer.tasks = [Task.COREFERENCE_RESOLUTION]
     score = scorer.run(predicted_documents, gold_documents).to_dict()
     task = "coreference"
@@ -75,7 +75,7 @@ def test_coreference_only(
 def test_score_addition(
     data_dir: Path, predicted_documents: list[Document], gold_documents: list[Document], scorer: CohesionEvaluator
 ) -> None:
-    expected_scores = json.loads(data_dir.joinpath("expected/score/0.json").read_text())
+    expected_scores = json.loads(data_dir.joinpath("expected/score/0.json").read_text(encoding="utf-8"))
     score1 = scorer.run(predicted_documents, gold_documents)
     score2 = scorer.run(predicted_documents, gold_documents)
     score = score1 + score2
@@ -99,22 +99,36 @@ def test_identical_document(gold_documents: list[Document], scorer: CohesionEval
 
 
 def test_export_txt(
-    data_dir: Path, predicted_documents: list[Document], gold_documents: list[Document], scorer: CohesionEvaluator
+    data_dir: Path,
+    tmp_path: Path,
+    predicted_documents: list[Document],
+    gold_documents: list[Document],
+    scorer: CohesionEvaluator,
 ) -> None:
     score = scorer.run(predicted_documents, gold_documents)
     with io.StringIO() as string:
         score.export_txt(string)
         string_actual = string.getvalue()
-    string_expected = data_dir.joinpath("expected/score/0.txt").read_text()
+    string_expected = data_dir.joinpath("expected/score/0.txt").read_text(encoding="utf-8")
     assert string_actual == string_expected
+    output_path = tmp_path / "score.txt"
+    score.export_txt(output_path)
+    assert output_path.read_text(encoding="utf-8") == string_expected
 
 
 def test_export_csv(
-    data_dir: Path, predicted_documents: list[Document], gold_documents: list[Document], scorer: CohesionEvaluator
+    data_dir: Path,
+    tmp_path: Path,
+    predicted_documents: list[Document],
+    gold_documents: list[Document],
+    scorer: CohesionEvaluator,
 ) -> None:
     score = scorer.run(predicted_documents, gold_documents)
     with io.StringIO() as string:
         score.export_csv(string)
         string_actual = string.getvalue()
-    string_expected = data_dir.joinpath("expected/score/0.csv").read_text()
+    string_expected = data_dir.joinpath("expected/score/0.csv").read_text(encoding="utf-8")
     assert string_actual == string_expected
+    output_path = tmp_path / "score.csv"
+    score.export_csv(output_path)
+    assert output_path.read_text(encoding="utf-8") == string_expected
