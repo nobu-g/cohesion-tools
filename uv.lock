@@ -40,7 +40,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "pandas", marker = "extra == 'eval'", specifier = ">=2.3.0,<2.4.0" },
-    { name = "rhoknp", specifier = ">=1.7.0" },
+    { name = "rhoknp", specifier = ">=1.8.1" },
 ]
 provides-extras = ["eval"]
 
@@ -541,14 +541,14 @@ wheels = [
 
 [[package]]
 name = "rhoknp"
-version = "1.8.0"
+version = "1.8.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "typing-extensions", marker = "python_full_version < '3.12'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/9d/27/4100dcabfb721ff3bafdb57b77169e6410dab4ba94e93dcaa5095b3bb818/rhoknp-1.8.0.tar.gz", hash = "sha256:083a0c75718a1b192dccbff1669267924b39af30c2445656b5e08adbd6b3be7f", size = 66397, upload-time = "2025-11-02T10:41:59.001Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/8a/fc/ee75121b4b4de895052b796ac30d723499de5a329298d3ed513481a0f8ec/rhoknp-1.8.1.tar.gz", hash = "sha256:b767c541a1f6ff9f09a3a8096dd4217b8a138fd3896e69fe799989d50cf1d423", size = 67356, upload-time = "2026-10-06T13:28:10.677Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c7/ce/e853e8a67514dcec61da84ac3b1e6a8e509bf1406d07eb7f0184b49b7743/rhoknp-1.8.0-py3-none-any.whl", hash = "sha256:e8ec14f18d946d44a3db489765760f871a2179a464ee93eacdc14bb1e0df0893", size = 94759, upload-time = "2025-11-02T10:41:57.406Z" },
+    { url = "https://files.pythonhosted.org/packages/59/2b/f6822bfbc164e00ee5e0a96e58461b651da1dbc12a82f25f7e11e8421c50/rhoknp-1.8.1-py3-none-any.whl", hash = "sha256:2fb54b7e882c19d8d545256c798a567179b7697c053a90f443b7083ad3e677ad", size = 94833, upload-time = "2026-10-06T13:28:09.117Z" },
 ]
 
 [[package]]
