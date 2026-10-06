@@ -1,6 +1,6 @@
 [project]
 name = "cohesion-tools"
-version = "0.7.6"
+version = "0.7.7"
 description = "A preprocessing and evaluation tools for Japanese cohesion analysis"
 license = "MIT"
 license-files = ["LICENSE"]
