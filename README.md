@@ -11,7 +11,7 @@
 
 ## Requirements
 
-- Python: 3.10+
+- Python: 3.11+
 - Dependencies: See [pyproject.toml](./pyproject.toml).
 
 ## Installation
