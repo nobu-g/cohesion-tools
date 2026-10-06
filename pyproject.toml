@@ -3,6 +3,7 @@ name = "cohesion-tools"
 version = "0.7.6"
 description = "A preprocessing and evaluation tools for Japanese cohesion analysis"
 license = "MIT"
+license-files = ["LICENSE"]
 authors = [
   {name = "Nobuhiro Ueda", email = "ueda-n127@hotmail.co.jp"},
 ]
@@ -12,7 +13,6 @@ maintainers = [
 readme = "README.md"
 keywords = ["NLP", "Japanese"]
 classifiers = [
-    "License :: OSI Approved :: MIT License",
     "Natural Language :: Japanese",
     "Operating System :: MacOS",
     "Operating System :: MacOS :: MacOS X",
