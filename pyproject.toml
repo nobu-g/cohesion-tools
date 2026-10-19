@@ -32,7 +32,7 @@ classifiers = [
 ]
 requires-python = ">=3.11"
 dependencies = [
-    "rhoknp>=1.8.1",
+    "rhoknp>=1.8.2",
 ]
 
 [project.optional-dependencies]
@@ -43,7 +43,7 @@ eval = [
 [dependency-groups]
 dev = [
     "pandas-stubs>=3.0.0",
-    "pytest>=9.0.0",
+    "pytest>=9.1.0",
 ]
 
 [build-system]

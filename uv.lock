@@ -6,10 +6,10 @@ resolution-markers = [
     "python_full_version >= '3.14' and sys_platform == 'emscripten'",
     "python_full_version >= '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'win32'",
-    "python_full_version < '3.12' and sys_platform == 'win32'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'emscripten'",
-    "python_full_version < '3.12' and sys_platform == 'emscripten'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32'",
+    "python_full_version < '3.12' and sys_platform == 'win32'",
+    "python_full_version < '3.12' and sys_platform == 'emscripten'",
     "python_full_version < '3.12' and sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 
@@ -35,14 +35,14 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "pandas", marker = "extra == 'eval'", specifier = ">=3.0.0" },
-    { name = "rhoknp", specifier = ">=1.8.1" },
+    { name = "rhoknp", specifier = ">=1.8.2" },
 ]
 provides-extras = ["eval"]
 
 [package.metadata.requires-dev]
 dev = [
     { name = "pandas-stubs", specifier = ">=3.0.0" },
-    { name = "pytest", specifier = ">=9.0.0" },
+    { name = "pytest", specifier = ">=9.1.0" },
 ]
 
 [[package]]
@@ -369,14 +369,14 @@ wheels = [
 
 [[package]]
 name = "rhoknp"
-version = "1.8.1"
+version = "1.8.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "typing-extensions", marker = "python_full_version < '3.12'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/8a/fc/ee75121b4b4de895052b796ac30d723499de5a329298d3ed513481a0f8ec/rhoknp-1.8.1.tar.gz", hash = "sha256:b767c541a1f6ff9f09a3a8096dd4217b8a138fd3896e69fe799989d50cf1d423", size = 67356, upload-time = "2026-10-06T13:28:10.677Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/5f/5d/09d7c86d6d38c38bc4b472fb281531377904246493c77a075b82247900d3/rhoknp-1.8.2.tar.gz", hash = "sha256:409b5884b9270dc842e8e6d7bef0a6a2eacd795a0c36df33db880dec85c83dba", size = 71707, upload-time = "2026-10-18T13:55:37.168Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/59/2b/f6822bfbc164e00ee5e0a96e58461b651da1dbc12a82f25f7e11e8421c50/rhoknp-1.8.1-py3-none-any.whl", hash = "sha256:2fb54b7e882c19d8d545256c798a567179b7697c053a90f443b7083ad3e677ad", size = 94833, upload-time = "2026-10-06T13:28:09.117Z" },
+    { url = "https://files.pythonhosted.org/packages/4b/9d/0e719bf11095ac30311572970cfff40fa5be8e7becd0f5e84db856414a02/rhoknp-1.8.2-py3-none-any.whl", hash = "sha256:59e28f09bad45153b1608b254d0dab7d7ae2c5896218e536aaaa50f52bc4e938", size = 95586, upload-time = "2026-10-18T13:55:35.763Z" },
 ]
 
 [[package]]
